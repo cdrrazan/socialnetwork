@@ -1,41 +1,25 @@
-<div >
-		<%= flash[:alert] %>
-		<p id="notice"><%= notice %></p>
+<% content_for :title, "Forum" %>
 
-<h2 class="header">Welcome to the forum!</h2>
-<div class=header>Before asking new Questions, please have a look at the following question!<br />
-Or, you can always ask a new one! <%= link_to 'New Question', new_question_path %></div>
-<hr />
-
-<table class="table">
-  <thead>
-    <tr>
-      <th>Title</th>
-      <!-- <th>Body</th> -->
-      <th colspan="1"></th>
-    </tr>
-  </thead>
-
-  <tbody>
-    <% @questions.each do |question| %>
-      <tr>
-        <td><%= question.title %></td>
-        <td><%#= question.body %></td>
-        
-				<td class="forumo"><%= link_to 'View', question,class: "btn btn-primary" %>
-				<% if can? :update, question%>
-						<%= link_to 'Edit', edit_question_path(question),class: "btn btn-primary" %>
-				<% end %>
-				<% if can? :destroy, question%>
-						<%= link_to 'Delete', question, method: :delete, data: { confirm: 'Are you sure?' },class: "btn btn-danger" %></td>
-            
-				<% end %>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
-
-<br>
-
-
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h1 class="h3 mb-0">Forum</h1>
+    <p class="text-body-secondary mb-0">Have a look at existing questions before asking a new one.</p>
+  </div>
+  <%= link_to "Ask a question", new_question_path, class: "btn btn-primary" %>
 </div>
+
+<% if @questions.any? %>
+  <div class="list-group">
+    <% @questions.each do |question| %>
+      <%= link_to question, class: "list-group-item list-group-item-action", id: dom_id(question) do %>
+        <div class="d-flex justify-content-between">
+          <strong><%= question.title %></strong>
+          <small class="text-body-secondary"><%= time_ago_in_words(question.created_at) %> ago</small>
+        </div>
+        <small class="text-body-secondary">asked by <%= question.user.display_name %></small>
+      <% end %>
+    <% end %>
+  </div>
+<% else %>
+  <p class="text-center text-body-secondary py-5">No questions yet.</p>
+<% end %>

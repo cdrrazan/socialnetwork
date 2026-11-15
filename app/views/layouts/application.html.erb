@@ -1,25 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>~/DevStory</title>
+    <title><%= content_for?(:title) ? "#{yield(:title)} · DevStory" : "DevStory" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description" content="DevStory: a social network for developers to blog, ask questions and connect.">
     <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= yield :head %>
 
-    <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload' %>
-    <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
   </head>
 
   <body>
-			<div class="container">
-					<%= render "layouts/navbar" %>
-					<% flash.each do |key,value| %>
-							<div class="alert alert-info" role="alert">
-									<strong><%= value %></strong> 
-							</div>
-					<% end %>
-					<%= yield %>
+    <%= render "layouts/navbar" %>
 
-			</div>
-			<%= render "layouts/footer" %> 
-			<% debug(params) if Rails.env.development? %>
+    <main class="container py-4">
+      <%= render "layouts/flash" %>
+      <%= yield %>
+    </main>
+
+    <%= render "layouts/footer" %>
   </body>
 </html>

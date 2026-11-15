@@ -1,15 +1,18 @@
-<h2 class="header">All Other Users</h2><hr />
-<div class="users">
-		<div class="form">
-				<%= form_tag users_path, :method => :get do %>
-						<%= text_field_tag :search, params[:search], class: "form-control" %>
-						<br><%= submit_tag "Search" , class: "btn btn-secondary"%>
-				<% end %><br>
-				<h2 style="color:red">Top User</h2>
-				<% if @users.size > 0 %>
-						<ul><%= render @users %></ul>
-				<% else %>
-						<p>You have not any friends of that match.</p>
-				<% end %>
-		</div>
-</div>
+<% content_for :title, "People" %>
+
+<h1 class="h3 mb-3">People</h1>
+
+<%= form_with url: users_path, method: :get, class: "d-flex gap-2 mb-4", role: "search" do |f| %>
+  <%= f.search_field :search, value: params[:search], class: "form-control", placeholder: "Search by username or email" %>
+  <%= f.submit "Search", class: "btn btn-outline-primary", name: nil %>
+<% end %>
+
+<% if @users.any? %>
+  <div class="list-group">
+    <% @users.each do |user| %>
+      <%= render "users/user", user: user, following: @following_ids.include?(user.id) %>
+    <% end %>
+  </div>
+<% else %>
+  <p class="text-body-secondary">Nobody matches “<%= params[:search] %>”.</p>
+<% end %>

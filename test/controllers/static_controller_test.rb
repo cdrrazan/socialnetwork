@@ -1,19 +1,34 @@
-require 'test_helper'
+require "test_helper"
 
 class StaticControllerTest < ActionDispatch::IntegrationTest
-  test "should get index" do
-    get static_index_url
+  test "public pages" do
+    %w[/ /about /contact].each do |path|
+      get path
+      assert_response :success, "expected #{path} to render"
+    end
+  end
+
+  test "signed-in users land on the blog" do
+    sign_in users(:alice)
+    get root_path
+    assert_select "h1", "Blog"
+  end
+
+  test "profile and settings require sign-in" do
+    get profile_path
+    assert_redirected_to new_user_session_path
+
+    sign_in users(:alice)
+    get profile_path
+    assert_response :success
+    assert_select "h1", "alice"
+
+    get settings_path
     assert_response :success
   end
 
-  test "should get about" do
-    get static_about_url
+  test "health check" do
+    get rails_health_check_path
     assert_response :success
   end
-
-  test "should get contact" do
-    get static_contact_url
-    assert_response :success
-  end
-
 end

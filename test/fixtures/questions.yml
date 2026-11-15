@@ -1,9 +1,4 @@
-# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
-
-one:
-  title: MyString
-  body: MyText
-
-two:
-  title: MyString
-  body: MyText
+minitest:
+  user: alice
+  title: How do I run one Minitest test?
+  body: I only want to run a single test while developing.

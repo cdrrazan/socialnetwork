@@ -1,25 +1,24 @@
 ActiveAdmin.register_page "Dashboard" do
-  menu priority: 1, label: proc{ I18n.t("active_admin.dashboard") }
-  content title: proc{ I18n.t("active_admin.dashboard") } do
-  #   div class: "blank_slate_container", id: "dashboard_default_message" do
-  #     span class: "blank_slate" do
-  #       span I18n.t("active_admin.dashboard_welcome.welcome")
-  #       small I18n.t("active_admin.dashboard_welcome.call_to_action")
-  #     end
-    #   end
+  menu priority: 1, label: proc { I18n.t("active_admin.dashboard") }
+
+  content title: proc { I18n.t("active_admin.dashboard") } do
     columns do
-      panel "Welcome to DevStory Admin Panel" do
-        div class: "admin_intro_paragraph" do
-          p "Welcome to Admin Dashboard"
+      column do
+        panel "At a glance" do
+          ul do
+            li "#{User.count} members"
+            li "#{Post.count} posts (#{Post.unpublished.count} awaiting publication)"
+            li "#{Question.count} questions, #{Answer.count} answers"
+          end
         end
       end
     end
 
     columns do
       column do
-        panel "Recent Posts" do
+        panel "Recent posts" do
           ul do
-            Post.order(created_at: :desc).map do |post|
+            Post.newest_first.limit(10).each do |post|
               li link_to(post.title, admin_post_path(post))
             end
           end
@@ -27,33 +26,24 @@ ActiveAdmin.register_page "Dashboard" do
       end
 
       column do
-        panel "Recently SignedUp Users" do
+        panel "Recently signed up" do
           ul do
-            User.order(created_at: :desc).map do |user|
-              li link_to(user.username, admin_user_path(user))
+            User.order(created_at: :desc).limit(10).each do |user|
+              li link_to(user.display_name, admin_user_path(user))
             end
           end
         end
       end
-      #   column do
-      #     panel "Info" do
-      #       para "Welcome to ActiveAdmin."
-      #     end
-      #   end
-      # end
-    end
-    columns do
-      column do
-        panel "Recent Questions" do
-          ul do
-            Question.order(created_at: :desc).map do |question|
-              li link_to(question.title,admin_question_path(question))
-            end
-          end
-        end
-      end
-    end
 
-    # content
+      column do
+        panel "Recent questions" do
+          ul do
+            Question.newest_first.limit(10).each do |question|
+              li link_to(question.title, admin_question_path(question))
+            end
+          end
+        end
+      end
+    end
   end
 end

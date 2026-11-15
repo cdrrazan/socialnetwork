@@ -1,5 +1,16 @@
-<div class="card answer-section">
-		<div id="answer-body"><%= answer.body %></div>
-		<%= answer.user.email %> <br/>
-		<%= time_ago_in_words(answer.created_at) %> ago <br/>
+<div class="card mb-3" id="<%= dom_id(answer) %>">
+  <div class="card-body">
+    <%= simple_format answer.body %>
+    <div class="d-flex justify-content-between align-items-center small text-body-secondary">
+      <span>
+        answered by <%= link_to answer.user.display_name, answer.user %>
+        · <%= time_ago_in_words(answer.created_at) %> ago
+      </span>
+      <% if policy(answer).destroy? %>
+        <%= button_to "Delete", question_answer_path(question, answer), method: :delete,
+                                class: "btn btn-link btn-sm p-0 text-danger",
+                                form: { data: { turbo_confirm: "Delete this answer?" } } %>
+      <% end %>
+    </div>
+  </div>
 </div>

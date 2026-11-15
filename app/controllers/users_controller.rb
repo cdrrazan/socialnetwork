@@ -1,33 +1,20 @@
 class UsersController < ApplicationController
   before_action :authenticate_user!
+
   def index
-    @users = User.search(params[:search])
+    @users = User.where.not(id: current_user.id).search(params[:search]).alphabetical
+    @following_ids = current_user.friendships.pluck(:friend_id).to_set
   end
+
   def show
-    #@user = User.find_by_permalink(params[:id])
-    find_user
-    @posts = @user.posts.all
+    @user = User.find(params[:id])
+    @posts = @user.posts.published.newest_first
+    @followers = @user.inverse_friends
+    @following = @user.friends
   end
 
   def my_friends
-    @friendships = current_user.friends
-    @friendships_inverse = current_user.inverse_friends
+    @following = current_user.friends.with_attached_avatar
+    @followers = current_user.inverse_friends.with_attached_avatar
   end
-
-  def add_friends
-    @friend = User.find(params[:friend])
-    current_user.friendships.build(friend_id: @friend.id)
-    if current_user.save
-      redirect_to my_friends_path, notice:  "Friend was successfully followed"
-    else
-      redirect_to my_friends_path, flash[:error] = "There was an error with adding user as friend"
-    end
-  end
-
-  private
-
-  def find_user
-    @user = User.find(params[:id])
-  end
-  
 end

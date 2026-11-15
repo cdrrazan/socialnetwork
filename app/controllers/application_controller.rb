@@ -1,28 +1,24 @@
 class ApplicationController < ActionController::Base
-  include Pundit
-  include PublicActivity::StoreController 
+  include Pundit::Authorization
+  include PublicActivity::StoreController
 
-  protect_from_forgery with: :exception
-  #before_action :authenticate_user!
-  before_action :configure_permitted_paramaters, if: :devise_controller?
-  before_action :configure_permitted_paramaters_for_registration, if: :devise_controller?
-  #rescue_from ActiveRecord::RecordNotFound, :with => {:render => "404"}
+  # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
+  allow_browser versions: :modern
 
-  rescue_from CanCan::AccessDenied do |exception|
-    redirect_to question_path, :alert => exception.message
-  end
-   
-  def get_current_user_email
-    current_user.email
-  end
+  before_action :configure_permitted_parameters, if: :devise_controller?
+
+  rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
   protected
 
-  def configure_permitted_paramaters
-    devise_parameter_sanitizer.permit(:account_update, keys: [:user_image,:username])
+  def configure_permitted_parameters
+    devise_parameter_sanitizer.permit(:sign_up, keys: [ :username ])
+    devise_parameter_sanitizer.permit(:account_update, keys: [ :username, :avatar ])
   end
 
-  def configure_permitted_paramaters_for_registration
-    devise_parameter_sanitizer.permit(:sign_up, keys: [:username])
+  private
+
+  def user_not_authorized
+    redirect_back_or_to root_path, alert: "You are not authorized to perform this action."
   end
 end

@@ -1,37 +1,34 @@
-<br/>
-<br/>
-<br/>
+<% content_for :title, "Your dev circle" %>
 
-<% if !user_signed_in? %>
-		<%= render "devise/sessions/form" %>
-		<%= render "static/whatwedo" %>
+<section class="landing-hero rounded-4 text-center mb-5">
+  <div class="container">
+    <h1 class="display-5 fw-bold">Your dev circle</h1>
+    <p class="lead col-lg-8 mx-auto">
+      DevStory is a social network for developers: share what you're building, ask and answer
+      programming questions, follow people whose work you admire and chat in private.
+    </p>
+    <div class="d-flex justify-content-center gap-2">
+      <%= link_to "Join today", new_user_registration_path, class: "btn btn-primary btn-lg" %>
+      <%= link_to "Browse the forum", questions_path, class: "btn btn-outline-primary btn-lg" %>
+    </div>
+  </div>
+</section>
 
-<% else %>
-<!-- <div class="container">
-<div class="row"> -->
-<!-- <div class="col-sm-2"></div> --> 
-	<!-- <div class="well">  -->
- 				<!-- <ul> -->
-						<% @posts.each do |post| %>
-						<!-- <div class="col-sm-6" style="background: lightgrey;">	
-								<div class="card" style="width: 20rem;">
-								<div class="card-block"> -->
-								<li>Title: <%= post.title %> <br/> </li>
-								<li>Body: <%= post.body.html_safe %></li>
-								<!-- <li>User Email: <%= post.email %> <br/></li> -->
-								<%= link_to "read",post,class: "btn btn-warning"%>
-								<br/>
-								<br>
-								
-								<br/><!-- </div></div> --><br>
-				<!-- </ul> --> 
-				
-						<% end %>
-
-<!-- </div> -->	</div>	
-	
-<% end %>			<!-- </div> 		 -->
-		
-
-<% end %>
-
+<div class="row g-4 text-center">
+  <div class="col-md-3">
+    <h2 class="h5">✍️ Blog</h2>
+    <p class="text-body-secondary">Write posts with a rich text editor and tag them by topic.</p>
+  </div>
+  <div class="col-md-3">
+    <h2 class="h5">💬 Forum</h2>
+    <p class="text-body-secondary">Ask questions and help others with answers.</p>
+  </div>
+  <div class="col-md-3">
+    <h2 class="h5">🤝 Follow</h2>
+    <p class="text-body-secondary">Follow developers and see their activity in your feed.</p>
+  </div>
+  <div class="col-md-3">
+    <h2 class="h5">🔎 Discover</h2>
+    <p class="text-body-secondary">Get recommendations for similar posts as you read.</p>
+  </div>
+</div>

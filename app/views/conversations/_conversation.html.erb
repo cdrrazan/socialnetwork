@@ -1,9 +1,10 @@
-
-<div class="chat">
-		Chatting with <%= conversation.with(current_user).email %>
-		<br>
-		<em><%= conversation.personal_messages.last.body.truncate(50) %></em>
-		<br>
-		<%= link_to 'View conversation', conversation_path(conversation) %>
-		<hr>
-</div>
+<% last_message = conversation.personal_messages.last %>
+<%= link_to conversation, class: "list-group-item list-group-item-action", id: dom_id(conversation) do %>
+  <div class="d-flex justify-content-between">
+    <strong><%= conversation.with(current_user).display_name %></strong>
+    <small class="text-body-secondary"><%= time_ago_in_words(conversation.updated_at) %> ago</small>
+  </div>
+  <% if last_message %>
+    <small class="text-body-secondary"><%= truncate(last_message.body, length: 80) %></small>
+  <% end %>
+<% end %>

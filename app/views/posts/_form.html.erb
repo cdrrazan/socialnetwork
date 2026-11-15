@@ -1,0 +1,26 @@
+<%= simple_form_for post do |f| %>
+  <%= f.error_notification %>
+
+  <%= f.input :title %>
+
+  <div class="mb-3">
+    <%= f.label :body, class: "form-label" %>
+    <%= f.hidden_field :body, id: "post_body_input" %>
+    <trix-editor input="post_body_input" class="form-control <%= "is-invalid" if post.errors[:body].any? %>"></trix-editor>
+    <% post.errors.full_messages_for(:body).each do |message| %>
+      <div class="invalid-feedback d-block"><%= message %></div>
+    <% end %>
+  </div>
+
+  <%= f.input :tag_list, label: "Tags", input_html: { value: post.tag_list.to_s },
+                         hint: "Separate tags with commas, e.g. ruby, rails, career" %>
+
+  <% if Recaptcha.configuration.site_key.present? %>
+    <div class="mb-3"><%= recaptcha_tags %></div>
+  <% end %>
+
+  <div class="d-flex gap-2">
+    <%= f.button :submit, class: "btn-primary" %>
+    <%= link_to "Cancel", post.persisted? ? post : posts_path, class: "btn btn-outline-secondary" %>
+  </div>
+<% end %>

@@ -1,7 +1,4 @@
-# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
-
-one:
-  body: MyText
-
-two:
-  body: MyText
+bobs_comment:
+  post: rails
+  user: bob
+  body: Great introduction!

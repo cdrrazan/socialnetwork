@@ -1,16 +1,25 @@
-version: '3'
+# Runs the production image locally:
+#
+#   SECRET_KEY_BASE=$(bin/rails secret) docker compose up --build
+#
+# then open http://localhost:3000. Data (SQLite databases and uploads) is kept
+# in the `storage` volume. Seed demo data with:
+#
+#   docker compose exec web bin/rails db:seed
 services:
-  db:
-    image: mysql
   web:
     build: .
-    command: bundle exec rails server -p 3000 -b '0.0.0.0'
-    volumes:
-      - .:/myapp
     ports:
-      - 3000:3000
-    depends_on:
-      - db
-      
-      
-    
+      - "3000:3000"
+    environment:
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?Set SECRET_KEY_BASE, e.g. SECRET_KEY_BASE=$(bin/rails secret)}
+      APP_HOST: localhost
+      FORCE_SSL: "false"
+      SOLID_QUEUE_IN_PUMA: "true"
+      RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY:-}
+      RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY:-}
+    volumes:
+      - storage:/rails/storage
+
+volumes:
+  storage:

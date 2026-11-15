@@ -1,15 +1,12 @@
-<h2 class="header">New message to <%= @receiver.email %></h1>
+<% content_for :title, "New message" %>
 
-<%= form_for @personal_message do |f| %>
-		<div class="form1-group">
-				<%= hidden_field_tag 'receiver_id', @receiver.id %>
-				<div class="form-group row">
-						<label for="example-text-input" class="col-2 col-form-label">Message</label>
-						<div class="col-10 form-control">
-								<%= f.text_field :body, class: "form-control" %>
-						</div>
-				</div>
-		<%= f.submit "Send",class: "btn btn-success" %>
-
-<% end %> 
-
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <h1 class="h4 mb-3">New message to <%= @receiver.display_name %></h1>
+    <%= simple_form_for @personal_message do |f| %>
+      <%= hidden_field_tag :receiver_id, @receiver.id %>
+      <%= f.input :body, as: :text, label: "Message", input_html: { rows: 4 } %>
+      <%= f.button :submit, "Send", class: "btn-primary" %>
+    <% end %>
+  </div>
+</div>

@@ -1,6 +1,7 @@
-<div class="chat">
-<div class="container"><p><%= personal_message.body %></p>
-<p><strong><%= personal_message.user.email %></strong> at <strong><%= personal_message.created_at %></strong></p>
-<hr>
-</div>
+<% mine = personal_message.user_id == current_user.id %>
+<div class="d-flex mb-2 <%= mine ? "justify-content-end" : "justify-content-start" %>" id="<%= dom_id(personal_message) %>">
+  <div class="p-2 rounded-3 <%= mine ? "text-bg-primary" : "bg-body-secondary" %>" style="max-width: 75%;">
+    <div><%= personal_message.body %></div>
+    <div class="small opacity-75"><%= personal_message.user.display_name %> · <%= l(personal_message.created_at, format: :short) %></div>
+  </div>
 </div>

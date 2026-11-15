@@ -1,53 +1,39 @@
-class Post < ActiveRecord::Base
-  #before_save :set_state
-  # before_commit :set_state
-  # # include PublicActivity::Model
-  # # tracked owner: ->(controller,model ) { controller && controller.current_user },
-  # #         title: ->(controller, model ) { controller && model.title }
+class Post < ApplicationRecord
+  include PublicActivity::Common
 
-  # # various states of the post
-  # # go from unpublished to published 
-  # state_machine :state, initial: :unpublished do
-  #   event :process do
-  #     transition unpublished: :published
-  #   end
-  # end
-
-  scope :published, -> { where(state: nil) }
-
-  def change_state
-    update_attributes(state: 'published')
-  end
-
-  # def current_post
-  #   return self.id
-  # end
-
-  # def self.recommend(current_post)
-    
-  # end
-  
-  validates :title,:body, presence: true
   belongs_to :user
-  #delegate :email, to: :user
-  #delegate :username, to: :user
-  has_many :comments,dependent: :destroy
+  has_many :comments, dependent: :destroy
 
   acts_as_votable
+  acts_as_taggable_on :tags
 
-  # extend FriendlyId
-  # friendly_id :title, use: :slugged
+  validates :title, :body, presence: true
 
+  # Posts created by users have no state; posts created from the admin panel
+  # are drafted as "unpublished" until an admin publishes them.
+  scope :published, -> { where(state: [ nil, "published" ]) }
+  scope :unpublished, -> { where(state: "unpublished") }
+  scope :newest_first, -> { order(created_at: :desc) }
+
+  def publish!
+    update!(state: "published")
+  end
 
   def to_param
     "#{id} #{title}".parameterize
   end
 
-  acts_as_taggable
+  # Posts most similar to this one, by TF-IDF cosine similarity of their bodies.
+  def similar_posts(limit: 5)
+    PostRecommender.new(self).similar(limit: limit)
+  end
 
-  # private
-  # def set_state
-  #   self.state = 'unpublished'
-  #   true 
-  # end
+  # Attributes the ActiveAdmin filters may search on (Ransack allowlist).
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id title body state created_at updated_at]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    []
+  end
 end

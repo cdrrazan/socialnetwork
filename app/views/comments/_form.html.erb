@@ -1,0 +1,5 @@
+<%= simple_form_for [post, comment] do |f| %>
+  <%= f.input :body, as: :text, label: comment.persisted? ? "Comment" : "Add a comment",
+                     input_html: { rows: 3 } %>
+  <%= f.button :submit, comment.persisted? ? "Update comment" : "Post comment", class: "btn-primary" %>
+<% end %>

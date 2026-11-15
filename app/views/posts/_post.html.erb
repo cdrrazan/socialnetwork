@@ -1,0 +1,10 @@
+<article class="card mb-3" id="<%= dom_id(post) %>">
+  <div class="card-body">
+    <h2 class="h5 card-title"><%= link_to post.title, post, class: "text-decoration-none" %></h2>
+    <p class="card-subtitle mb-2 text-body-secondary small">
+      by <%= link_to post.user.display_name, post.user %> · <%= time_ago_in_words(post.created_at) %> ago
+    </p>
+    <p class="card-text"><%= truncate(strip_tags(post.body), length: 200) %></p>
+    <%= render "posts/tags", post: post %>
+  </div>
+</article>

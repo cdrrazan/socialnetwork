@@ -1,13 +1,32 @@
-<div class="displayq">
-<strong>Title:</strong><%= @question.title %> <br/>
-<strong>Description:</strong><%= @question.body %> <br/>
-<strong>Posted by:</strong><%= @question.user.email %>
-<hr />
-<h4><%= @question.answers.count %> Answers <%= render @question.answers %> | Reply to thread </h4><%= render "answers/form" %>
-<br/>
+<% content_for :title, @question.title %>
 
-<% if can? :update , @question%>
-		<%= link_to 'Edit', edit_question_path(@question), class: "btn btn-primary" %>
-<% end %>
-<%= link_to 'Back', questions_path, class: "btn btn-danger" %>
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <h1 class="h3"><%= @question.title %></h1>
+    <p class="text-body-secondary small">
+      asked by <%= link_to @question.user.display_name, @question.user %>
+      · <%= time_ago_in_words(@question.created_at) %> ago
+    </p>
+
+    <div class="mb-3"><%= simple_format @question.body %></div>
+
+    <div class="d-flex gap-2 mb-4">
+      <% if policy(@question).update? %>
+        <%= link_to "Edit", edit_question_path(@question), class: "btn btn-outline-secondary btn-sm" %>
+      <% end %>
+      <% if policy(@question).destroy? %>
+        <%= button_to "Delete", @question, method: :delete, class: "btn btn-outline-danger btn-sm",
+                                          form: { data: { turbo_confirm: "Delete this question and its answers?" } } %>
+      <% end %>
+    </div>
+
+    <h2 class="h5"><%= pluralize(@answers.size, "answer") %></h2>
+    <%= render partial: "answers/answer", collection: @answers, locals: { question: @question } %>
+
+    <% if user_signed_in? %>
+      <%= render "answers/form", question: @question, answer: @answer %>
+    <% else %>
+      <p class="text-body-secondary"><%= link_to "Log in", new_user_session_path %> to answer this question.</p>
+    <% end %>
+  </div>
 </div>

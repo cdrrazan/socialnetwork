@@ -1,0 +1,9 @@
+<%# locals: (user:, size: 48) -%>
+<% if user.avatar.attached? %>
+  <%= image_tag user.avatar.variant(:thumbnail), alt: user.display_name, class: "avatar", width: size, height: size %>
+<% else %>
+  <span class="avatar d-inline-flex align-items-center justify-content-center text-bg-secondary"
+        style="width: <%= size %>px; height: <%= size %>px;" aria-hidden="true">
+    <%= user.display_name.first.upcase %>
+  </span>
+<% end %>

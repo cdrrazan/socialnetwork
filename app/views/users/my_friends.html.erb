@@ -1,23 +1,32 @@
+<% content_for :title, "Friends" %>
 
-<h2 class="header">Following</h2><%= @friendships.size %></span>
-<% if @friendships.size > 0  %>
-		<% @friendships.each do |friend| %>
-				<% if friend.user_image? %>
-						<%= image_tag friend.user_image.url(:thumbnail), alt: "no profile pic" %>
-				<% else %>
-						<p>Profile picture not found</p>
-				<% end %>
-				<%= friend.email  %>
-				<small><%= link_to "view profile",user_path(friend)%></small> || 
-				<small><%= link_to "unfollow",friendship_path(friend), method: :delete%></small>
-				<br/>
-		<% end %>
-		<% else %>
-		<h2 style="padding-left: 80px;">You don't have any friends at all </h1>
-<% end %>
+<div class="row g-4">
+  <section class="col-md-6">
+    <h1 class="h4">Following (<%= @following.size %>)</h1>
+    <% if @following.any? %>
+      <div class="list-group">
+        <% @following.each do |user| %>
+          <%= render "users/user", user: user, following: true %>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-body-secondary">You aren't following anyone yet. <%= link_to "Find people", users_path %>.</p>
+    <% end %>
+  </section>
 
-<h1>Followers</h1>
-<span><%= @friendships_inverse.count %></span>
-<% @friendships_inverse.each do |inverse_friends| %>
-		<%= inverse_friends.email  %>
-<% end %>
+  <section class="col-md-6">
+    <h2 class="h4">Followers (<%= @followers.size %>)</h2>
+    <% if @followers.any? %>
+      <div class="list-group">
+        <% @followers.each do |user| %>
+          <div class="list-group-item d-flex align-items-center gap-3">
+            <%= render "users/avatar", user: user, size: 40 %>
+            <%= link_to user.display_name, user %>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-body-secondary">No followers yet.</p>
+    <% end %>
+  </section>
+</div>

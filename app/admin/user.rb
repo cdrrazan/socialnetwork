@@ -1,33 +1,41 @@
 ActiveAdmin.register User do
-  actions :all,:except => :edit
+  menu priority: 2
+  actions :all, except: :new
 
-  # See permitted parameters documentation:
-# https://github.com/activeadmin/activeadmin/blob/master/docs/2-resource-customization.md#setting-up-strong-parameters
-#
-# permit_params :list, :of, :attributes, :on, :model
+  # Admins can only toggle the `admin` flag; members manage everything else.
   permit_params :admin
-  #
-# or
-#
-# permit_params do
-#   permitted = [:permitted, :attributes]
-#   permitted << :other if params[:action] == 'create' && current_user.admin?
-#   permitted
-  # end
+
   index do
-    column :id
+    selectable_column
+    id_column
     column :username
     column :email
-    column :created_at
     column :admin
-    column :unconfirmed_email
     column :sign_in_count
-    column :permalink
+    column :created_at
     actions
   end
 
+  filter :username
   filter :email
-  filter :id
+  filter :admin
   filter :created_at
-  filter :updated_at
+
+  show do
+    attributes_table do
+      row :username
+      row :email
+      row :admin
+      row :sign_in_count
+      row :last_sign_in_at
+      row :created_at
+    end
+  end
+
+  form do |f|
+    f.inputs "Permissions" do
+      f.input :admin, label: "Site moderator (may edit or delete any member content)"
+    end
+    f.actions
+  end
 end

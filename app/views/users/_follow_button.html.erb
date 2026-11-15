@@ -1,0 +1,7 @@
+<%# locals: (user:, following:) -%>
+<% if following %>
+  <%= button_to "Unfollow", friendship_path(user), method: :delete, class: "btn btn-outline-danger btn-sm",
+                                                   form: { data: { turbo_confirm: "Unfollow #{user.display_name}?" } } %>
+<% else %>
+  <%= button_to "Follow", friendships_path(friend_id: user.id), class: "btn btn-primary btn-sm" %>
+<% end %>

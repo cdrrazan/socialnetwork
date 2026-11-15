@@ -1,0 +1,52 @@
+// Bootstrap 5 (from the bootstrap gem) and the Trix editor styles.
+$primary: #198754;
+
+@import "bootstrap";
+@import "trix";
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+.navbar-brand img {
+  height: 32px;
+  width: auto;
+}
+
+.avatar {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.post-body {
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+.conversation-body {
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.landing-hero {
+  padding: 6rem 0;
+  background: linear-gradient(135deg, rgba($primary, 0.1), rgba($primary, 0.25));
+}
+
+trix-editor {
+  min-height: 12rem;
+  background-color: var(--bs-body-bg);
+}
+
+// Hide Trix's file-attachment button: uploads are not wired up.
+trix-toolbar .trix-button-group--file-tools {
+  display: none;
+}

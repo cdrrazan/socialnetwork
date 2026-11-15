@@ -1,7 +1,10 @@
 class Comment < ApplicationRecord
-  # include PublicActivity::Common
-  # tracked except: :destroy, owner: ->(controller, model ) { controller && controller.current_user }
+  include PublicActivity::Common
 
+  belongs_to :post
   belongs_to :user
+
   validates :body, presence: true
+
+  scope :chronological, -> { order(created_at: :asc) }
 end
