@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_15_024955) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_15_031244) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -91,7 +91,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_024955) do
   end
 
   create_table "answers", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
-    t.text "body", null: false
+    t.text "body", size: :medium, null: false
     t.bigint "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -101,7 +101,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_024955) do
   end
 
   create_table "comments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
-    t.text "body", null: false
+    t.text "body", size: :medium, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
@@ -133,7 +133,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_024955) do
   end
 
   create_table "personal_messages", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
-    t.text "body", null: false
+    t.text "body", size: :medium, null: false
     t.bigint "conversation_id", null: false
     t.bigint "user_id", null: false
     t.datetime "created_at", null: false
@@ -144,7 +144,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_024955) do
 
   create_table "posts", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "title", null: false
-    t.text "body", null: false
+    t.text "body", size: :medium, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
@@ -162,7 +162,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_024955) do
 
   create_table "questions", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "title", null: false
-    t.text "body", null: false
+    t.text "body", size: :medium, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false

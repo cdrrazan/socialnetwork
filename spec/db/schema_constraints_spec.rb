@@ -113,6 +113,26 @@ RSpec.describe "Database constraints" do
       expect(Post.columns_hash.fetch("created_at").precision).to eq(6)
     end
 
+    it "stores body columns as MEDIUMTEXT" do
+      [ Post, Comment, Question, Answer, PersonalMessage ].each do |model|
+        expect(model.columns_hash.fetch("body").sql_type).to eq("mediumtext"), "#{model.name}.body"
+      end
+    end
+
+    it "fits a post body at the 65,535-character limit even when every character takes four bytes" do
+      body = "\u{1F680}" * 65_535 # 262,140 bytes: too big for a TEXT column
+      post = create(:post, body: body)
+      expect(post.reload.body.length).to eq(65_535)
+    end
+
+    it "uses utf8mb4 for every table" do
+      collations = ActiveRecord::Base.connection.select_values(<<~SQL)
+        SELECT DISTINCT table_collation FROM information_schema.tables
+        WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE'
+      SQL
+      expect(collations).to all(start_with("utf8mb4_"))
+    end
+
     it "compares tag names case-sensitively" do
       expect(ActsAsTaggableOn::Tag.columns_hash.fetch("name").collation).to eq("utf8mb4_bin")
     end
