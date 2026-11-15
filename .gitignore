@@ -37,3 +37,7 @@
 # Credentials keys
 /config/master.key
 /config/credentials/*.key
+
+# Node packages installed for script/screenshots.js
+/node_modules
+/package-lock.json
