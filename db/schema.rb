@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_15_015700) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_15_020000) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -91,12 +91,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_015700) do
 
   create_table "answers", force: :cascade do |t|
     t.text "body"
-    t.integer "post_id"
     t.integer "user_id"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.integer "question_id"
-    t.index ["post_id"], name: "index_answers_on_post_id"
+    t.index ["question_id"], name: "index_answers_on_question_id"
     t.index ["user_id"], name: "index_answers_on_user_id"
   end
 
@@ -126,6 +125,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_015700) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.index ["friend_id"], name: "index_friendships_on_friend_id"
+    t.index ["user_id", "friend_id"], name: "index_friendships_on_user_id_and_friend_id", unique: true
     t.index ["user_id"], name: "index_friendships_on_user_id"
   end
 
@@ -157,6 +157,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_015700) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.integer "user_id"
+    t.index ["user_id"], name: "index_questions_on_user_id"
   end
 
   create_table "taggings", force: :cascade do |t|
@@ -209,6 +210,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_015700) do
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["username"], name: "index_users_on_username", unique: true
   end
 
   create_table "votes", force: :cascade do |t|
@@ -229,9 +231,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_015700) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "answers", "posts"
+  add_foreign_key "answers", "questions"
   add_foreign_key "answers", "users"
+  add_foreign_key "comments", "posts"
+  add_foreign_key "comments", "users"
+  add_foreign_key "conversations", "users", column: "author_id"
+  add_foreign_key "conversations", "users", column: "receiver_id"
+  add_foreign_key "friendships", "users"
+  add_foreign_key "friendships", "users", column: "friend_id"
   add_foreign_key "personal_messages", "conversations"
   add_foreign_key "personal_messages", "users"
   add_foreign_key "posts", "users"
+  add_foreign_key "questions", "users"
 end

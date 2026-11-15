@@ -1,13 +1,12 @@
 class Question < ApplicationRecord
-  validates :title, presence: true
-  validates :body, presence: true
-
-  has_many :answers
   belongs_to :user
+  has_many :answers, dependent: :destroy
 
+  validates :title, :body, presence: true
+
+  scope :newest_first, -> { order(created_at: :desc) }
 
   def to_param
     "#{id} #{title}".parameterize
   end
-  
 end
