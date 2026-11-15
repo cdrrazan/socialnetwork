@@ -7,9 +7,11 @@
 [![CI](https://github.com/cdrrazan/socialnetwork/actions/workflows/ci.yml/badge.svg)](https://github.com/cdrrazan/socialnetwork/actions/workflows/ci.yml)
 ![Ruby 4.0](https://img.shields.io/badge/Ruby-4.0-CC342D?logo=ruby&logoColor=white)
 ![Rails 8.1](https://img.shields.io/badge/Rails-8.1-D30001?logo=rubyonrails&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)
+![MySQL 8](https://img.shields.io/badge/MySQL-8.0%20%7C%208.4-4479A1?logo=mysql&logoColor=white)
 ![Hotwire](https://img.shields.io/badge/Hotwire-Turbo%20%2B%20Stimulus-5CD8E5)
 ![Bootstrap 5.3](https://img.shields.io/badge/Bootstrap-5.3-7952B3?logo=bootstrap&logoColor=white)
+![RSpec](https://img.shields.io/badge/RSpec-445%20examples-E9573F?logo=rubygems&logoColor=white)
+![Coverage 100%](https://img.shields.io/badge/coverage-100%25%20lines%20%26%20branches-brightgreen)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
 ![No Node.js](https://img.shields.io/badge/Node.js-not%20required-339933?logo=nodedotjs&logoColor=white)
 
@@ -19,7 +21,8 @@
 
 DevStory (originally *Coders Sanjal*) began in 2017 as a final-year project:
 a meeting point for developers, mostly in Nepal, to discuss, share ideas and
-collaborate. In 2026 it was rebuilt on **Ruby 4.0** and **Rails 8.1**. See the
+collaborate. In 2026 it was rebuilt on **Ruby 4.0**, **Rails 8.1** and
+**MySQL 8**, with an RSpec suite that covers every line and branch. See the
 [changelog](CHANGELOG.md) for everything that changed.
 
 ## Contents
@@ -28,6 +31,7 @@ collaborate. In 2026 it was rebuilt on **Ruby 4.0** and **Rails 8.1**. See the
 - [Screenshots](#screenshots)
 - [Tech stack](#tech-stack)
 - [Architecture](#architecture)
+- [Database](#database)
 - [Getting started](#getting-started)
 - [Configuration](#configuration)
 - [Testing and quality](#testing-and-quality)
@@ -43,7 +47,7 @@ collaborate. In 2026 it was rebuilt on **Ruby 4.0** and **Rails 8.1**. See the
 
 | | Feature | Details |
 |:-:|---|---|
-| ✍️ | **Blog** | Write posts in the Trix rich text editor, tag them, filter by tag, vote 👍/👎 and comment. Post HTML is sanitized before it is shown. |
+| ✍️ | **Blog** | Write posts in the Trix rich text editor, tag them, filter by tag, sort by newest or top-voted, vote 👍/👎 and comment. Post HTML is sanitized before it is shown. |
 | 🔎 | **Similar posts** | Each post suggests related posts using TF-IDF and cosine similarity ([how it works](doc/recommendations.md)). |
 | 💬 | **Forum** | Ask questions and answer them. Anyone can read; members can post. A JSON API is included. |
 | 🤝 | **Follow people** | Search members by username or email and follow or unfollow them. |
@@ -54,6 +58,7 @@ collaborate. In 2026 it was rebuilt on **Ruby 4.0** and **Rails 8.1**. See the
 | 🛠️ | **Admin panel** | ActiveAdmin at `/admin`: manage members, posts, questions and answers, draft and publish announcements, grant moderator rights. |
 | 🤖 | **Spam protection** | Optional Google reCAPTCHA on new posts, switched on by setting two environment variables. |
 | 📱 | **Responsive** | Bootstrap 5 layout that works on phones. |
+| 🗄️ | **Data integrity** | MySQL foreign keys, NOT NULL and CHECK constraints back up every model validation, and `bin/rails data:audit` finds rows that break the rules. |
 
 ## Screenshots
 
@@ -93,21 +98,21 @@ Screenshots are generated from the seed data by
 |---|---|---|
 | Language | Ruby 4.0 | Any Ruby ≥ 3.3 works; CI tests 3.3, 3.4 and 4.0. |
 | Framework | Rails 8.1 | `load_defaults 8.1`. |
-| Database | SQLite 3 | Development, test and production. |
-| Background jobs | Solid Queue | Separate SQLite database in production. |
-| Cache | Solid Cache | Separate SQLite database in production. |
-| WebSockets | Solid Cable | Separate SQLite database in production. |
+| Database | MySQL 8.0 / 8.4 | `mysql2` adapter, utf8mb4, strict SQL mode; CI runs both versions. |
+| Background jobs | Solid Queue | Own database (`<name>_queue`) in production; jobs retry on MySQL deadlocks. |
+| Cache | Solid Cache | Own database (`<name>_cache`) in production. |
+| WebSockets | Solid Cable | Own database (`<name>_cable`); connections authenticated with the Devise session. |
 | Web server | Puma | Can run Solid Queue in-process (`SOLID_QUEUE_IN_PUMA`). |
 | Front end | Turbo, Stimulus, import maps | No bundler and no Node.js. |
 | Styling | Bootstrap 5.3, Dart Sass, Sprockets | Sprockets is kept for ActiveAdmin and the bootstrap gem. |
 | Editor | Trix | Shipped by the `action_text-trix` gem. |
-| Accounts | Devise 5 | Members and admins are separate models. |
+| Accounts | Devise 5 | Members and admins are separate models; Turbo-friendly 422/303 responses. |
 | Authorization | Pundit | Policies in `app/policies`. |
 | Uploads | Active Storage + libvips | Profile pictures with thumbnail/medium/large variants. |
 | Admin | ActiveAdmin 3.5 | Ransack 4 search allowlists. |
-| Social | acts_as_votable, acts-as-taggable-on, public_activity | Votes, tags and the activity feed. |
-| Recommendations | tf-idf-similarity | See [doc/recommendations.md](doc/recommendations.md). |
-| Tests | Minitest, Capybara, Cuprite | Cuprite drives Chrome directly; no chromedriver. |
+| Social | acts_as_votable, acts-as-taggable-on, public_activity | Cached vote counts and tag lists on `posts`. |
+| Recommendations | tf-idf-similarity | Stop-word filtered; see [doc/recommendations.md](doc/recommendations.md). |
+| Tests | RSpec, FactoryBot, Shoulda Matchers, Capybara + Cuprite, SimpleCov | 100% line and branch coverage, enforced. |
 | Quality | RuboCop (rails-omakase), Brakeman, bundler-audit, importmap audit | Run by `bin/ci` and GitHub Actions. |
 
 ## Architecture
@@ -129,11 +134,11 @@ flowchart LR
         Admin["ActiveAdmin<br/>/admin"] --> Models
     end
     Router --> Admin
-    Models --> PrimaryDB[("SQLite<br/>primary")]
+    Models --> PrimaryDB[("MySQL<br/>socialnetwork")]
     Models --> Storage[("Active Storage<br/>storage/")]
-    Jobs["Solid Queue"] --> QueueDB[("SQLite<br/>queue")]
-    Cache["Solid Cache"] --> CacheDB[("SQLite<br/>cache")]
-    Cable["Solid Cable"] --> CableDB[("SQLite<br/>cable")]
+    Jobs["Solid Queue"] --> QueueDB[("MySQL<br/>…_queue")]
+    Cache["Solid Cache"] --> CacheDB[("MySQL<br/>…_cache")]
+    Cable["Solid Cable"] --> CableDB[("MySQL<br/>…_cable")]
     App -.-> Jobs
     App -.-> Cache
     App -.-> Cable
@@ -183,27 +188,36 @@ erDiagram
     CONVERSATION ||--o{ PERSONAL_MESSAGE : contains
 
     USER {
-        string email
-        string username "unique"
-        boolean admin "moderator"
+        bigint id PK
+        string email "unique"
+        string username "unique, case-insensitive"
+        boolean admin "moderator, NOT NULL"
         attachment avatar
     }
     POST {
-        string title
-        text body "sanitized HTML"
-        string state "unpublished = draft"
+        bigint id PK
+        bigint user_id FK
+        string title "NOT NULL"
+        text body "NOT NULL, sanitized HTML"
+        string state "CHECK: NULL, published, unpublished"
+        int comments_count "counter cache"
+        int cached_votes_up "vote cache"
+        int cached_votes_score "up minus down"
+        string cached_tag_list "tag cache"
     }
     QUESTION {
-        string title
-        text body
+        bigint id PK
+        bigint user_id FK
+        string title "NOT NULL"
+        int answers_count "counter cache"
     }
     FRIENDSHIP {
-        int user_id "follower"
-        int friend_id "followed"
+        bigint user_id FK "follower"
+        bigint friend_id FK "followed, CHECK differs"
     }
     CONVERSATION {
-        int author_id
-        int receiver_id
+        bigint author_id FK
+        bigint receiver_id FK "CHECK differs"
     }
 ```
 
@@ -236,6 +250,35 @@ flowchart LR
     F --> G["Drop zero scores,<br/>sort, take top 5"]
 ```
 
+## Database
+
+DevStory runs on **MySQL 8.0 or newer** (CI tests 8.0 and 8.4). The schema
+enforces the same rules as the models, so bad data is rejected even when
+validations are skipped:
+
+| Rule | How MySQL enforces it |
+|---|---|
+| Every post, comment, question, answer and message has an author and content | `NOT NULL` columns |
+| No comment, answer, follow or message points at a deleted row | Foreign keys on every reference |
+| One account per username, whatever the case | Unique index with the case-insensitive `utf8mb4_unicode_ci` collation |
+| You can't follow yourself or message yourself | `CHECK (user_id <> friend_id)`, `CHECK (author_id <> receiver_id)` |
+| Posts are either published or drafts | `CHECK (state IS NULL OR state IN ('published', 'unpublished'))` |
+| One follow and one conversation per pair of people | Unique composite indexes |
+| Emoji and every other character can be stored | `utf8mb4` everywhere; tags use `utf8mb4_bin` |
+
+Lists don't need a `COUNT` per row: comment, answer and vote counts and each
+post's tag list are cached on the row and kept up to date automatically.
+
+```mermaid
+flowchart LR
+    A["bin/rails data:audit"] -->|reports| B["NULLs in required columns<br/>orphaned rows<br/>bad or duplicate usernames<br/>self-follows, duplicate follows<br/>unknown post states<br/>stale counter caches"]
+    C["bin/rails data:reset_counters"] -->|recalculates| D["comments_count<br/>answers_count<br/>cached vote columns"]
+```
+
+`data:audit` exits with status 1 when it finds problems, so it can run in CI
+or before a deploy. It also works on an old 2017 database before migrating.
+See [doc/UPGRADING.md](doc/UPGRADING.md).
+
 ## Getting started
 
 ### Requirements
@@ -243,13 +286,31 @@ flowchart LR
 | Tool | Version | Why |
 |---|---|---|
 | Ruby | 4.0 (≥ 3.3) | See [`.ruby-version`](.ruby-version). |
-| SQLite | 3 | The database. |
+| MySQL | 8.0 or newer | The database. `brew install mysql` / `apt install mysql-server`, or Docker (below). |
+| MySQL client headers | any | Needed to compile the `mysql2` gem (`libmysqlclient-dev` on Debian/Ubuntu; included with Homebrew's `mysql`). |
 | libvips | any recent | Resizes profile pictures (`brew install vips` / `apt install libvips`). |
-| Chrome or Chromium | any recent | System tests only. |
+| Chrome or Chromium | any recent | System specs only. |
 
-You don't need Node.js, Yarn, MySQL or Redis.
+You don't need Node.js, Yarn or Redis.
 
 ### Setup
+
+**1. Create the MySQL user** the app connects as (once per machine):
+
+```bash
+mysql -u root -p -e "CREATE USER IF NOT EXISTS 'socialnetwork'@'127.0.0.1' IDENTIFIED BY 'socialnetwork'; GRANT ALL PRIVILEGES ON \`socialnetwork\_%\`.* TO 'socialnetwork'@'127.0.0.1';"
+```
+
+No local MySQL? Start one in Docker instead (it creates the same user):
+
+```bash
+docker run -d --name devstory-mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -v "$PWD/docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro" mysql:8.4
+```
+
+To use a different server or user, set `DB_HOST`, `DB_PORT`, `DB_USERNAME`
+and `DB_PASSWORD` (see [Configuration](#configuration)).
+
+**2. Set up and start the app:**
 
 ```bash
 git clone https://github.com/cdrrazan/socialnetwork.git
@@ -257,9 +318,11 @@ cd socialnetwork
 bin/setup
 ```
 
-`bin/setup` installs the gems, creates the database, loads demo content from
-[`db/seeds.rb`](db/seeds.rb) and starts the server at
-**http://localhost:3000**. Start it again later with `bin/dev`.
+`bin/setup` installs the gems, creates `socialnetwork_development` and
+`socialnetwork_test`, loads the schema and demo content from
+[`db/seeds.rb`](db/seeds.rb), and starts the server at
+**http://localhost:3000**. If it can't reach MySQL it prints what to fix.
+Start the server again later with `bin/dev`.
 
 ```mermaid
 flowchart LR
@@ -281,49 +344,80 @@ The seeds create these accounts, all with the password **`password`**:
 | `admin@example.com` | http://localhost:3000/admin | Admin panel. |
 
 Seeds are idempotent: run `bin/rails db:seed` at any time to restore them.
+They never run in production unless you set `SEED_DEMO_DATA=true`, so a new
+deployment doesn't get accounts with a known password.
 
 ## Configuration
 
-Settings come from environment variables. In development you can put them in
-a `.env` file (copy [`.env.example`](.env.example)); it is ignored by git.
+Settings come from environment variables. In development and test you can
+put them in a `.env` file (copy [`.env.example`](.env.example)); it is
+ignored by git.
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY` | unset | Turn on reCAPTCHA for new posts. Without them it is off. |
+| `DB_HOST` | `127.0.0.1` | MySQL server. |
+| `DB_PORT` | `3306` | MySQL port. |
+| `DB_USERNAME` | `socialnetwork` | MySQL user. |
+| `DB_PASSWORD` | `socialnetwork` (dev/test) | MySQL password. **Required in production.** |
+| `DB_NAME` | `socialnetwork_production` | Production database name; Solid uses `<name>_cache`, `<name>_queue`, `<name>_cable`. |
+| `DATABASE_URL` | unset | Full connection URL for the primary database; overrides the settings above. |
 | `SECRET_KEY_BASE` | dev: auto-generated | **Required in production.** Generate with `bin/rails secret`. |
 | `APP_HOST` | `example.com` | Host name used in links in emails (production). |
+| `MAILER_FROM` | `DevStory <no-reply@APP_HOST>` | Sender of password-reset and other emails. |
+| `RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY` | unset | Turn on reCAPTCHA for new posts. Without them it is off. |
 | `FORCE_SSL` | `true` | Set to `false` to serve production over plain HTTP. |
 | `SOLID_QUEUE_IN_PUMA` | unset | Run background jobs inside Puma. |
+| `SEED_DEMO_DATA` | unset | Set to `true` to allow `db:seed` in production. |
 | `RAILS_MAX_THREADS` | `3` (DB pool: `5`) | Puma threads per process; also sets the database connection pool. |
 | `WEB_CONCURRENCY` | unset | Number of Puma worker processes. |
 | `PORT` | `3000` | Port Puma listens on. |
 | `RAILS_LOG_LEVEL` | `info` | Production log level. |
+| `BROWSER_PATH`, `HEADLESS` | unset | Chrome binary for system specs; `HEADLESS=false` shows the browser. |
 
 ## Testing and quality
 
+The test suite is **RSpec** with FactoryBot, Shoulda Matchers and Capybara
+(Cuprite drives Chrome for the JavaScript specs). Specs run against MySQL, in
+transactions that are rolled back after each example.
+
 ```bash
-bin/rails test          # 88 unit, policy, service, controller and integration tests
-bin/rails test:system   # 3 browser tests (needs Chrome/Chromium)
-bin/ci                  # everything below, in order
+bin/rspec                                  # everything: 445 examples, ~40 s
+bin/rspec spec/models                      # one folder
+bin/rspec spec/requests/posts_spec.rb:42   # one example
+bin/ci                                     # lint, security scans, specs, seeds, data audit
 ```
 
-| Check | Command | What it covers |
-|---|---|---|
-| 🧪 Tests | `bin/rails test` | Models, Pundit policies, `PostRecommender`, every controller, ActiveAdmin and sign-up. |
-| 🖥️ System tests | `bin/rails test:system` | Logging in, writing a post in Trix, Turbo confirm dialogs, following and messaging. |
-| 🎨 Style | `bin/rubocop` | rubocop-rails-omakase. |
-| 🔐 Code security | `bin/brakeman` | Static analysis for Rails vulnerabilities. |
-| 📦 Gem security | `bin/bundler-audit` | Known CVEs in gems. |
-| 📦 JS security | `bin/importmap audit` | Known CVEs in pinned JavaScript packages. |
-| 🌱 Seeds | `RAILS_ENV=test bin/rails db:seed:replant` | The seed file still runs. |
+A full `bin/rspec` run **fails if line or branch coverage drops below 100%**.
+The HTML report is written to `coverage/index.html`. Running a subset only
+reports coverage, so it never fails for that reason.
 
-System-test options: `BROWSER_PATH=/path/to/chrome` picks the browser and
-`HEADLESS=false` shows it while the tests run.
+| Folder | Count | What it covers |
+|---|---|---|
+| `spec/models` | 117 | Associations, validations, scopes, callbacks, counter caches, votes, tags. |
+| `spec/policies` | 45 | Every Pundit rule for owners, members, moderators and visitors. |
+| `spec/services` | 30 | `PostRecommender` ranking and stop words; `DataAudit` against recreated 2017-style tables. |
+| `spec/requests` | 147 | Every controller: sign-in redirects, authorization, strong params, 404s, Turbo status codes, JSON, sanitized HTML, query counts. |
+| `spec/requests/admin` | 33 | ActiveAdmin access, dashboard, filters, Ransack allowlist, publishing, moderator flag. |
+| `spec/system` | 19 | Real browser: sign-up/log-in, Trix, Turbo confirms, voting, sorting, comments, forum, follows, messages, avatar upload, mobile menu, admin publishing. |
+| `spec/db` | 25 | MySQL constraints (NOT NULL, foreign keys, unique, CHECK, bigint, utf8mb4) and the seed file. |
+| `spec/channels`, `spec/jobs`, `spec/mailers`, `spec/tasks` | 14 | Cable authentication, deadlock retries, mail sender, rake task output and exit codes. |
+| `spec/factories_spec.rb` | 15 | Every factory and trait builds a valid record. |
+
+Quality checks:
+
+| Check | Command |
+|---|---|
+| 🎨 Style | `bin/rubocop` |
+| 🔐 Code security | `bin/brakeman` (two reviewed false positives are documented in `config/brakeman.ignore`) |
+| 📦 Gem security | `bin/bundler-audit` |
+| 📦 JS security | `bin/importmap audit` |
+| 🌱 Seeds | `RAILS_ENV=test bin/rails db:seed:replant` |
+| 🗄️ Data | `bin/rails data:audit` |
 
 ### Continuous integration
 
 GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs
-on every push to `master`/`main` and on every pull request. Dependabot keeps
+on every push to `main`/`master` and on every pull request. Dependabot keeps
 gems and actions up to date.
 
 ```mermaid
@@ -331,25 +425,30 @@ flowchart LR
     Push["Push / PR"] --> Scan["scan_ruby<br/>Brakeman + bundler-audit"]
     Push --> JS["scan_js<br/>importmap audit"]
     Push --> Lint["lint<br/>RuboCop"]
-    Push --> Test["test<br/>Ruby 3.3 · 3.4 · 4.0<br/>+ seed check"]
-    Push --> Sys["system-test<br/>Chrome via Cuprite"]
+    Push --> Matrix["rspec matrix<br/>Ruby 3.3 · 3.4 · 4.0 on MySQL 8.4<br/>Ruby 4.0 on MySQL 8.0"]
+    Matrix --> M1["migrations from scratch<br/>reproduce schema.rb"]
+    M1 --> M2["bin/rspec<br/>incl. system specs, 100% coverage"]
+    M2 --> M3["seeds + data:audit"]
+    M3 --> M4["coverage report artifact"]
 ```
 
 ## Docker
 
 The [`Dockerfile`](Dockerfile) builds a production image: multi-stage build,
-Ruby 4.0 slim, jemalloc, libvips, a non-root user, precompiled assets and
-bootsnap. To run it locally with [`docker-compose.yml`](docker-compose.yml):
+Ruby 4.0 slim, the MySQL client library, jemalloc, libvips, a non-root user,
+precompiled assets and bootsnap.
+[`docker-compose.yml`](docker-compose.yml) runs it together with MySQL 8.4:
 
 ```bash
 SECRET_KEY_BASE=$(bin/rails secret) docker compose up --build
 ```
 
-Open http://localhost:3000. Data is kept in the `storage` volume. To add the
-demo content:
+Open http://localhost:3000. On first start the app creates its four databases
+and loads the schema. MySQL data is kept in the `mysql` volume and uploads in
+the `storage` volume. To add the demo content:
 
 ```bash
-docker compose exec web bin/rails db:seed
+docker compose exec -e SEED_DEMO_DATA=true web bin/rails db:seed
 ```
 
 ## Deployment
@@ -358,26 +457,32 @@ docker compose exec web bin/rails db:seed
 flowchart LR
     Image["Docker image"] --> Entry["bin/docker-entrypoint<br/>db:prepare"]
     Entry --> Server["Puma :3000<br/>+ Solid Queue (optional)"]
-    Server --> Volume[("Persistent volume<br/>/rails/storage")]
-    Volume --- DBs["production.sqlite3<br/>production_cache.sqlite3<br/>production_queue.sqlite3<br/>production_cable.sqlite3<br/>uploads"]
+    Server --> MySQL[("MySQL 8<br/>socialnetwork_production<br/>…_cache · …_queue · …_cable")]
+    Server --> Volume[("Persistent volume<br/>/rails/storage<br/>uploads")]
 ```
 
 This is a standard Rails 8 app, so it runs on any container host or server
-with Ruby. Checklist:
+with Ruby and access to MySQL. Checklist:
 
-1. **Mount persistent storage** at `storage/` (`/rails/storage` in the image).
-   It holds all four SQLite databases and the uploaded files.
+1. **Create a MySQL user** that can create and use `socialnetwork_production`
+   and the `_cache`, `_queue` and `_cable` databases next to it (see
+   [`docker/mysql/init.sql`](docker/mysql/init.sql)). Set `DB_HOST`,
+   `DB_USERNAME` and `DB_PASSWORD` (and `DB_NAME` to use another name).
 2. **Set `SECRET_KEY_BASE`** and **`APP_HOST`**. Set `FORCE_SSL=false` only if
    TLS is not terminated in front of the app.
-3. **Migrations** run automatically when the container starts
-   (`bin/rails db:prepare`).
-4. **Background jobs**: run `bin/jobs` as a second process, or set
+3. **Mount persistent storage** at `storage/` (`/rails/storage` in the image)
+   for uploaded profile pictures.
+4. **Migrations** run automatically when the container starts
+   (`bin/rails db:prepare`). Demo seed data is never loaded in production.
+5. **Background jobs**: run `bin/jobs` as a second process, or set
    `SOLID_QUEUE_IN_PUMA=true` on a single server.
-5. **Create the first admin** from a console:
+6. **Create the first admin** from a console:
    ```ruby
    AdminUser.create!(email: "you@example.com", password: "a-long-password")
    ```
-6. **Health check**: `GET /up` returns 200 when the app has booted.
+7. **Health check**: `GET /up` returns 200 when the app has booted.
+8. **Optional**: run `bin/rails data:audit` after deploys to catch data
+   problems early.
 
 Upgrading an installation from the 2017 version? Read
 [doc/UPGRADING.md](doc/UPGRADING.md) first.
@@ -415,25 +520,32 @@ Run `bin/rails routes` for the full list.
 app/
 ├── admin/            ActiveAdmin resources and dashboard
 ├── assets/           Sass (application.scss, active_admin.scss) and images
+├── channels/         Action Cable connection (Devise-authenticated)
 ├── controllers/      Blog, forum, people, messaging, activity and static pages
 ├── javascript/       Import-map entry point and Stimulus controllers
+├── jobs/             ApplicationJob (retries MySQL deadlocks)
+├── mailers/          ApplicationMailer (also the parent of Devise's mailer)
 ├── models/           Active Record models
 ├── policies/         Pundit authorization policies
-├── services/         PostRecommender (TF-IDF similar posts)
+├── services/         PostRecommender (similar posts), DataAudit (data checks)
 └── views/            ERB templates (Bootstrap 5)
-config/               Routes, environments, import map, Solid configs
+config/               Routes, environments, MySQL database.yml, import map, Solid configs
 db/
 ├── migrate/          Migrations from 2017 to today
-├── schema.rb         Current schema
-└── seeds.rb          Demo data
+├── schema.rb         Current MySQL schema
+└── seeds.rb          Demo data (skipped in production)
+docker/mysql/         init.sql creating the app's MySQL user
 doc/
 ├── architecture.md   Data model, request flow, authorization
 ├── recommendations.md How "similar posts" works
 ├── UPGRADING.md      Migrating a 2017 installation
 └── screenshots/      Images used in this README
+lib/tasks/data.rake   data:audit and data:reset_counters
 script/screenshots.js Regenerates the screenshots
-test/                 Minitest: models, policies, services, controllers,
-                      integration and system tests
+spec/                 RSpec: models, policies, services, requests, admin,
+                      system, db constraints, channels, jobs, mailers, tasks
+├── factories/        FactoryBot factories and traits
+└── support/          Capybara/Cuprite, Devise, query matchers, legacy tables
 ```
 
 ## Command cheat sheet
@@ -443,10 +555,15 @@ test/                 Minitest: models, policies, services, controllers,
 | Set up and start | `bin/setup` |
 | Start the server | `bin/dev` |
 | Rails console | `bin/rails console` |
+| MySQL console for the app database | `bin/rails dbconsole` |
 | Reload demo data | `bin/rails db:seed` |
 | Reset the database | `bin/rails db:reset` |
 | Run migrations | `bin/rails db:migrate` |
-| Run one test file or line | `bin/rails test test/models/user_test.rb:12` |
+| Check data integrity | `bin/rails data:audit` |
+| Fix counter caches | `bin/rails data:reset_counters` |
+| Run every spec (with coverage) | `bin/rspec` |
+| Run one spec file or line | `bin/rspec spec/models/post_spec.rb:42` |
+| Watch system specs in a browser | `HEADLESS=false bin/rspec spec/system` |
 | Run everything CI runs | `bin/ci` |
 | Auto-fix style | `bin/rubocop -a` |
 | Background jobs (production) | `bin/jobs` |
@@ -459,15 +576,15 @@ test/                 Minitest: models, policies, services, controllers,
   authorization and background jobs
 - [doc/recommendations.md](doc/recommendations.md): the TF-IDF and cosine
   similarity maths behind "similar posts"
-- [doc/UPGRADING.md](doc/UPGRADING.md): moving a 2017 MySQL installation to
-  this version
+- [doc/UPGRADING.md](doc/UPGRADING.md): upgrading a 2017 MySQL installation
+  in place
 - [CHANGELOG.md](CHANGELOG.md): what changed in the 2026 rebuild
 
 ## Contributing
 
 1. Fork the repository and create a branch.
 2. Make your change, with tests.
-3. Run `bin/ci` (or at least `bin/rails test` and `bin/rubocop`).
+3. Run `bin/ci` (or at least `bin/rspec` and `bin/rubocop`). Keep coverage at 100%.
 4. Open a pull request. CI must pass.
 
 If you change the UI, regenerate the screenshots with
