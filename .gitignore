@@ -24,3 +24,16 @@
 # Editor / OS noise
 .projectile
 .DS_Store
+/vendor/bundle
+
+# SQLite databases and Active Storage uploads
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+!/tmp/storage/.keep
+/public/assets
+/public/system
+
+# Credentials keys
+/config/master.key
+/config/credentials/*.key

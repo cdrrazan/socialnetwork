@@ -1,54 +1,44 @@
-# MySQL. Versions 5.0 and up are supported.
+# SQLite. Versions 3.8.0 and up are supported.
+#   gem install sqlite3
 #
-# Install the MySQL driver
-#   gem install mysql2
-#
-# Ensure the MySQL gem is defined in your Gemfile
-#   gem 'mysql2'
-#
-# And be sure to use new-style password hashing:
-#   http://dev.mysql.com/doc/refman/5.7/en/old-client.html
+#   Ensure the SQLite 3 gem is defined in your Gemfile
+#   gem "sqlite3"
 #
 default: &default
-  adapter: mysql2
-  encoding: utf8
-  pool: 5
-  username: socialnetwork
-  password: socialnetwork
-  host: localhost
+  adapter: sqlite3
+  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  timeout: 5000
 
 development:
   <<: *default
-  database: socialnetwork_development
+  database: storage/development.sqlite3
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: socialnetwork_test
+  database: storage/test.sqlite3
 
-# As with config/secrets.yml, you never want to store sensitive information,
-# like your database password, in your source code. If your source code is
-# ever seen by anyone, they now have access to your database.
+# SQLite3 write its data on the local filesystem, as such it requires
+# persistent disks. If you are deploying to a managed service, you should
+# make sure it provides disk persistence, as many don't.
 #
-# Instead, provide the password as a unix environment variable when you boot
-# the app. Read http://guides.rubyonrails.org/configuring.html#configuring-a-database
-# for a full rundown on how to provide these environment variables in a
-# production deployment.
-#
-# On Heroku and other platform providers, you may have a full connection URL
-# available as an environment variable. For example:
-#
-#   DATABASE_URL="mysql2://myuser:mypass@localhost/somedatabase"
-#
-# You can use this database configuration with:
-#
-#   production:
-#     url: <%= ENV['DATABASE_URL'] %>
-#
+# Similarly, if you deploy your application as a Docker container, you must
+# ensure the database is located in a persisted volume.
 production:
-  <<: *default
-  database: socialnetwork_production
-  username: socialnetwork
-  password: <%= ENV['SOCIALNETWORK_DATABASE_PASSWORD'] %>
+  primary:
+    <<: *default
+    # database: path/to/persistent/storage/production.sqlite3
+  cache:
+    <<: *default
+    # database: path/to/persistent/storage/production_cache.sqlite3
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *default
+    # database: path/to/persistent/storage/production_queue.sqlite3
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *default
+    # database: path/to/persistent/storage/production_cable.sqlite3
+    migrations_paths: db/cable_migrate
