@@ -11,7 +11,7 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[8.1].define(version: 2026_11_15_020000) do
-  create_table "active_admin_comments", force: :cascade do |t|
+  create_table "active_admin_comments", id: :integer, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
     t.string "resource_type"
@@ -25,7 +25,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_020000) do
     t.index ["resource_type", "resource_id"], name: "index_active_admin_comments_on_resource_type_and_resource_id"
   end
 
-  create_table "active_storage_attachments", force: :cascade do |t|
+  create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
     t.bigint "record_id", null: false
@@ -35,7 +35,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_020000) do
     t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
   end
 
-  create_table "active_storage_blobs", force: :cascade do |t|
+  create_table "active_storage_blobs", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "key", null: false
     t.string "filename", null: false
     t.string "content_type"
@@ -47,13 +47,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_020000) do
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
-  create_table "active_storage_variant_records", force: :cascade do |t|
+  create_table "active_storage_variant_records", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "activities", force: :cascade do |t|
+  create_table "activities", id: :integer, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "trackable_type"
     t.integer "trackable_id"
     t.string "owner_type"
@@ -72,7 +72,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_020000) do
     t.index ["trackable_type", "trackable_id"], name: "index_activities_on_trackable_type_and_trackable_id"
   end
 
-  create_table "admin_users", force: :cascade do |t|
+  create_table "admin_users", id: :integer, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
     t.string "reset_password_token"
@@ -89,7 +89,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_020000) do
     t.index ["reset_password_token"], name: "index_admin_users_on_reset_password_token", unique: true
   end
 
-  create_table "answers", force: :cascade do |t|
+  create_table "answers", id: :integer, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.text "body"
     t.integer "user_id"
     t.datetime "created_at", precision: nil, null: false
@@ -99,7 +99,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_020000) do
     t.index ["user_id"], name: "index_answers_on_user_id"
   end
 
-  create_table "comments", force: :cascade do |t|
+  create_table "comments", id: :integer, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.text "body"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -109,7 +109,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_020000) do
     t.index ["user_id"], name: "index_comments_on_user_id"
   end
 
-  create_table "conversations", force: :cascade do |t|
+  create_table "conversations", id: :integer, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.integer "author_id"
     t.integer "receiver_id"
     t.datetime "created_at", precision: nil, null: false
@@ -119,7 +119,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_020000) do
     t.index ["receiver_id"], name: "index_conversations_on_receiver_id"
   end
 
-  create_table "friendships", force: :cascade do |t|
+  create_table "friendships", id: :integer, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.integer "user_id"
     t.integer "friend_id"
     t.datetime "created_at", precision: nil, null: false
@@ -129,7 +129,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_020000) do
     t.index ["user_id"], name: "index_friendships_on_user_id"
   end
 
-  create_table "personal_messages", force: :cascade do |t|
+  create_table "personal_messages", id: :integer, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.text "body"
     t.integer "conversation_id"
     t.integer "user_id"
@@ -139,7 +139,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_020000) do
     t.index ["user_id"], name: "index_personal_messages_on_user_id"
   end
 
-  create_table "posts", force: :cascade do |t|
+  create_table "posts", id: :integer, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "title"
     t.text "body"
     t.datetime "created_at", precision: nil, null: false
@@ -151,7 +151,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_020000) do
     t.index ["user_id"], name: "index_posts_on_user_id"
   end
 
-  create_table "questions", force: :cascade do |t|
+  create_table "questions", id: :integer, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "title"
     t.text "body"
     t.datetime "created_at", precision: nil, null: false
@@ -160,7 +160,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_020000) do
     t.index ["user_id"], name: "index_questions_on_user_id"
   end
 
-  create_table "taggings", force: :cascade do |t|
+  create_table "taggings", id: :integer, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.integer "tag_id"
     t.string "taggable_type"
     t.integer "taggable_id"
@@ -181,13 +181,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_020000) do
     t.index ["tagger_type", "tagger_id"], name: "index_taggings_on_tagger_type_and_tagger_id"
   end
 
-  create_table "tags", force: :cascade do |t|
-    t.string "name"
+  create_table "tags", id: :integer, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.string "name", collation: "utf8mb3_bin"
     t.integer "taggings_count", default: 0
     t.index ["name"], name: "index_tags_on_name", unique: true
   end
 
-  create_table "users", force: :cascade do |t|
+  create_table "users", id: :integer, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
     t.string "reset_password_token"
@@ -213,7 +213,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_020000) do
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
-  create_table "votes", force: :cascade do |t|
+  create_table "votes", id: :integer, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "votable_type"
     t.integer "votable_id"
     t.string "voter_type"
