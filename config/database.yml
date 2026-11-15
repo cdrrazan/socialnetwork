@@ -13,8 +13,8 @@
 # which takes precedence over the primary database settings below.
 #
 # Create the local user once with:
-#   CREATE USER 'socialnetwork'@'%' IDENTIFIED BY 'socialnetwork';
-#   GRANT ALL PRIVILEGES ON `socialnetwork\_%`.* TO 'socialnetwork'@'%';
+#   CREATE USER 'socialnetwork'@'127.0.0.1' IDENTIFIED BY 'socialnetwork';
+#   GRANT ALL PRIVILEGES ON `socialnetwork\_%`.* TO 'socialnetwork'@'127.0.0.1';
 default: &default
   adapter: mysql2
   encoding: utf8mb4
