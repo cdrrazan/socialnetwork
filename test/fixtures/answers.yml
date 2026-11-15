@@ -1,4 +1,0 @@
-bobs_answer:
-  question: minitest
-  user: bob
-  body: Pass the file and line number to bin/rails test.

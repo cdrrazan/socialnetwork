@@ -1,0 +1,51 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "aa70effba690e2d9e0f0d142b65ba7d49ec26b211beb99c9c67f74c93ae1d752",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/services/data_audit.rb",
+      "line": 194,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.select_values(\"SELECT id FROM #{quote_table(table)} WHERE #{condition} ORDER BY id LIMIT #{5}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "DataAudit",
+        "method": "problem_from"
+      },
+      "user_input": "quote_table(table)",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": "DataAudit only interpolates table names, column names and conditions defined as constants in the class; the one dynamic value (duplicate usernames read back from the database) is escaped with connection.quote. No request data reaches this SQL."
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "c71b2202f8ae1f30e10f93976c3612d0cb3fc3fc993c40694a9616cf0c33b3fc",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/services/data_audit.rb",
+      "line": 190,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.select_value(\"SELECT COUNT(*) FROM #{quote_table(table)} WHERE #{condition}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "DataAudit",
+        "method": "problem_from"
+      },
+      "user_input": "quote_table(table)",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": "DataAudit only interpolates table names, column names and conditions defined as constants in the class; the one dynamic value (duplicate usernames read back from the database) is escaped with connection.quote. No request data reaches this SQL."
+    }
+  ],
+  "brakeman_version": "8.1.0"
+}
