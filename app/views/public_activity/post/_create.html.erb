@@ -1,5 +1,5 @@
-<% if activity.trackable  %>
-				created a post <%= link_to a.trackable.title, activity.trackable %>
+<% if activity.trackable %>
+  published <%= link_to activity.trackable.title, activity.trackable %>
 <% else %>
-		which has since been removed.
+  published a post that has since been removed
 <% end %>

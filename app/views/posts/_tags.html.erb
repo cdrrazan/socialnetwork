@@ -1,0 +1,7 @@
+<% if post.tag_list.any? %>
+  <div class="d-flex flex-wrap gap-1">
+    <% post.tag_list.each do |tag| %>
+      <%= link_to tag, posts_path(tag: tag), class: "badge text-bg-light text-decoration-none" %>
+    <% end %>
+  </div>
+<% end %>

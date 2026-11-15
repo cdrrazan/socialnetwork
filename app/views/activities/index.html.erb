@@ -1,7 +1,21 @@
-<h1>Activities</h1>
-<% @activities.each do |activity| %>
-		<div>
-				<%= link_to activity.owner.email, activity.owner if activity.owner %>
-				<%= render_activity activity %>
-		</div>
+<% content_for :title, "Activity" %>
+
+<h1 class="h3 mb-4">Activity from people you follow</h1>
+
+<% if @activities.any? %>
+  <ul class="list-group">
+    <% @activities.each do |activity| %>
+      <li class="list-group-item">
+        <% if activity.owner %>
+          <strong><%= link_to activity.owner.display_name, activity.owner %></strong>
+        <% end %>
+        <%= render_activity activity %>
+        <small class="text-body-secondary">· <%= time_ago_in_words(activity.created_at) %> ago</small>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p class="text-body-secondary">
+    Nothing here yet. <%= link_to "Follow some people", users_path %> to see what they're up to.
+  </p>
 <% end %>

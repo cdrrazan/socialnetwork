@@ -1,5 +1,4 @@
-<%= simple_form_for([@question,@question.answers.build]) do |f| %>
-		<%= f.input :body,label: "share your answer" %>
-		<%= f.submit %>
+<%= simple_form_for [question, answer] do |f| %>
+  <%= f.input :body, label: "Your answer", input_html: { rows: 5 } %>
+  <%= f.button :submit, "Post answer", class: "btn-primary" %>
 <% end %>
-

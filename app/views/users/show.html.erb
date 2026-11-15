@@ -1,22 +1,23 @@
-<div class="users">
-    <div style="padding-left: 15px;">
-        <div  class="container card-block">
-            <h3><%= @user.username %></h3>
-            <h3><%= @user.email %></h3><br>
-            <% if @user.avatar.attached? %><br>
-								<%= image_tag @user.avatar.variant(:medium), alt: "Profile picture" %>
-						<% end %>
-						<span class="spacing"><%= @followers.size %> Followers</span>
-						<span class="spacing"><%= @following.size %> Following</span>
-            <hr />
-            <div class="container row">
-                <% @posts.each do |post| %>
-                    <div class="col-sm-4 card">
-                        <%= post.title %> <br/>
-                        <%= post.body.html_safe %></div>
-                <% end %></div>
-                
+<% content_for :title, @user.display_name %>
 
-        </div>
+<div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+  <%= render "users/avatar", user: @user, size: 96 %>
+  <div class="me-auto">
+    <h1 class="h3 mb-1"><%= @user.display_name %></h1>
+    <div class="text-body-secondary small">
+      <%= pluralize(@followers.size, "follower") %> · <%= @following.size %> following
+      · member since <%= l(@user.created_at.to_date, format: :long) %>
     </div>
-    
+  </div>
+  <% if @user != current_user %>
+    <%= link_to "Message", new_personal_message_path(receiver_id: @user.id), class: "btn btn-outline-secondary btn-sm" %>
+    <%= render "users/follow_button", user: @user, following: current_user.following?(@user) %>
+  <% end %>
+</div>
+
+<h2 class="h5">Posts</h2>
+<% if @posts.any? %>
+  <%= render @posts %>
+<% else %>
+  <p class="text-body-secondary">No posts yet.</p>
+<% end %>

@@ -10,7 +10,7 @@ class PostsController < ApplicationController
 
   def show
     @comments = @post.comments.includes(:user).chronological
-    @comment = @post.comments.build
+    @comment = Comment.new
     @similar_posts = @post.similar_posts
   end
 

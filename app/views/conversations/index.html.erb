@@ -1,6 +1,13 @@
-<div style="padding-left: 15px;">
-<h2 class="header">Your conversations</h2>
+<% content_for :title, "Messages" %>
 
-<div id="conversations">
-		<%= render @conversations %>
-</div></div>
+<h1 class="h3 mb-4">Your conversations</h1>
+
+<% if @conversations.any? %>
+  <div class="list-group">
+    <%= render @conversations %>
+  </div>
+<% else %>
+  <p class="text-body-secondary">
+    No conversations yet. Find someone on the <%= link_to "people page", users_path %> and say hi!
+  </p>
+<% end %>

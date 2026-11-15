@@ -8,7 +8,7 @@ class QuestionsController < ApplicationController
 
   def show
     @answers = @question.answers.includes(:user).chronological
-    @answer = @question.answers.build
+    @answer = Answer.new
   end
 
   def new

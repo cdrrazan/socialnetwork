@@ -1,20 +1,21 @@
-<div style="padding-left: 200px;"><h2>All Blog Post</h2></div>
-<div style="padding-left: 200px;">Trending Blog Posts!</div>
-<p class="header"><a href="posts/new">Want to create your own? Create a new Blog post.</a></p><hr/>
+<% content_for :title, "Blog" %>
 
-<div class="show-posts">
-<% @posts.each do |post| %>
-		<div class="card-columns">
-				<div class="col-sm-40 show-posts ">
-						<div class="card">
-								<div class="card-block">
-										<h4 class="card-title"><%= post.title %></h4>
-										<h6 class="card-subtitle mb-2 text-muted"><%= post.tag_list.join(',') %></h6>
-										<p class="card-text"><%= post.body.truncate(100).html_safe %></p>
-										<%= link_to "Read more",post,class: "card-link"%>
-								</div>
-						</div>
-				</div>
-		</div>
-<% end %>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h1 class="h3 mb-0">Blog</h1>
+    <% if params[:tag].present? %>
+      <p class="text-body-secondary mb-0">
+        Posts tagged <strong><%= params[:tag] %></strong> · <%= link_to "show all", posts_path %>
+      </p>
+    <% end %>
+  </div>
+  <%= link_to "Write a post", new_post_path, class: "btn btn-primary" %>
 </div>
+
+<% if @posts.any? %>
+  <%= render @posts %>
+<% else %>
+  <div class="text-center text-body-secondary py-5">
+    <p>No posts yet. Why not write the first one?</p>
+  </div>
+<% end %>

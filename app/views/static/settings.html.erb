@@ -1,4 +1,24 @@
-<div class="settings">
-<h2 class="header">Settings</h2><hr/>
-<%= render 'devise/shared/deactivate' %>
+<% content_for :title, "Settings" %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <h1 class="h3 mb-4">Settings</h1>
+
+    <div class="card mb-4">
+      <div class="card-body">
+        <h2 class="h5">Profile</h2>
+        <p class="text-body-secondary">Change your username, email, password or profile picture.</p>
+        <%= link_to "Edit profile", edit_user_registration_path, class: "btn btn-outline-primary" %>
+      </div>
+    </div>
+
+    <div class="card border-danger">
+      <div class="card-body">
+        <h2 class="h5 text-danger">Delete account</h2>
+        <p>This permanently deletes your account along with your posts, questions, answers and messages.</p>
+        <%= button_to "Delete my account", user_registration_path, method: :delete, class: "btn btn-danger",
+                                                                   form: { data: { turbo_confirm: "Are you sure? This cannot be undone." } } %>
+      </div>
+    </div>
+  </div>
 </div>

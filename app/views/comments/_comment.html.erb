@@ -1,0 +1,17 @@
+<div class="border-start border-3 ps-3 mb-3" id="<%= dom_id(comment) %>">
+  <div class="small text-body-secondary">
+    <strong><%= link_to comment.user.display_name, comment.user %></strong>
+    · <%= time_ago_in_words(comment.created_at) %> ago
+  </div>
+  <p class="mb-1"><%= comment.body %></p>
+  <div class="d-flex gap-2 small">
+    <% if policy(comment).update? %>
+      <%= link_to "Edit", edit_post_comment_path(post, comment) %>
+    <% end %>
+    <% if policy(comment).destroy? %>
+      <%= button_to "Delete", post_comment_path(post, comment), method: :delete,
+                              class: "btn btn-link btn-sm p-0 text-danger",
+                              form: { data: { turbo_confirm: "Delete this comment?" } } %>
+    <% end %>
+  </div>
+</div>
