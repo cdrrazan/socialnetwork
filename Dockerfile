@@ -3,7 +3,11 @@
 
 # This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
 # docker build -t socialnetwork .
-# docker run -d -p 80:3000 -e SECRET_KEY_BASE=$(bin/rails secret) -v devstory_storage:/rails/storage --name socialnetwork socialnetwork
+# docker run -d -p 80:3000 -e SECRET_KEY_BASE=$(bin/rails secret) \
+#   -e DB_HOST=mysql.internal -e DB_USERNAME=socialnetwork -e DB_PASSWORD=... \
+#   -v devstory_storage:/rails/storage --name socialnetwork socialnetwork
+#
+# or run it together with MySQL using docker-compose.yml.
 
 # For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 
@@ -16,7 +20,7 @@ WORKDIR /rails
 
 # Install base packages
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips sqlite3 && \
+    apt-get install --no-install-recommends -y curl default-mysql-client libjemalloc2 libvips && \
     ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
@@ -32,7 +36,7 @@ FROM base AS build
 
 # Install packages needed to build gems
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git libvips libyaml-dev pkg-config && \
+    apt-get install --no-install-recommends -y build-essential default-libmysqlclient-dev git libvips libyaml-dev pkg-config && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Install application gems

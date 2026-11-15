@@ -14,10 +14,10 @@
 
     <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
       <%= button_to like_post_path(@post), method: :put, class: "btn btn-outline-success btn-sm" do %>
-        👍 <span class="ms-1"><%= @post.get_upvotes.size %></span>
+        👍 <span class="ms-1"><%= @post.cached_votes_up %></span>
       <% end %>
       <%= button_to dislike_post_path(@post), method: :put, class: "btn btn-outline-danger btn-sm" do %>
-        👎 <span class="ms-1"><%= @post.get_downvotes.size %></span>
+        👎 <span class="ms-1"><%= @post.cached_votes_down %></span>
       <% end %>
 
       <div class="ms-auto d-flex gap-2">

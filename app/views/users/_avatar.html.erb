@@ -1,5 +1,6 @@
 <%# locals: (user:, size: 48) -%>
-<% if user.avatar.attached? %>
+<%# Only saved images can be resized; a rejected upload on a re-rendered form is neither. -%>
+<% if user.avatar.attached? && user.avatar.blob.persisted? && user.avatar.variable? %>
   <%= image_tag user.avatar.variant(:thumbnail), alt: user.display_name, class: "avatar", width: size, height: size %>
 <% else %>
   <span class="avatar d-inline-flex align-items-center justify-content-center text-bg-secondary"

@@ -12,13 +12,15 @@ Devise.setup do |config|
   # Configure the e-mail address which will be shown in Devise::Mailer,
   # note that it will be overwritten if you use your own mailer class
   # with default "from" parameter.
-  config.mailer_sender = "please-change-me-at-config-initializers-devise@example.com"
+  config.mailer_sender = ->(*) { ApplicationMailer.default_sender }
 
   # Configure the class responsible to send e-mails.
   # config.mailer = 'Devise::Mailer'
 
   # Configure the parent class responsible to send e-mails.
-  # config.parent_mailer = 'ActionMailer::Base'
+  # Send Devise emails (password resets, etc.) through ApplicationMailer so
+  # they share its layout and defaults.
+  config.parent_mailer = "ApplicationMailer"
 
   # ==> ORM configuration
   # Load and configure the ORM. Supports :active_record (default) and
@@ -274,4 +276,11 @@ Devise.setup do |config|
   # When using OmniAuth, Devise cannot automatically set OmniAuth path,
   # so you need to do it manually. For the users scope, it would be:
   # config.omniauth_path_prefix = '/my_engine/users/auth'
+
+  # ==> Hotwire/Turbo configuration
+  # Turbo only renders a form submission's response when it is a redirect or
+  # an error status, so failed log-ins/sign-ups must return 422 (otherwise the
+  # error messages never appear) and redirects must be 303 See Other.
+  config.responder.error_status = :unprocessable_content
+  config.responder.redirect_status = :see_other
 end

@@ -4,7 +4,11 @@ class PostsController < ApplicationController
 
   def index
     authorize Post
-    @posts = policy_scope(Post).includes(:user, :tags).newest_first
+    # Tag names come from posts.cached_tag_list, but acts-as-taggable-on still
+    # reads each post's taggings once to check its tag contexts; preloading
+    # them keeps that to a single query for the whole page.
+    @posts = policy_scope(Post).includes(:user, :taggings)
+    @posts = params[:sort] == "top" ? @posts.top_rated : @posts.newest_first
     @posts = @posts.tagged_with(params[:tag]) if params[:tag].present?
   end
 

@@ -9,7 +9,15 @@
       </p>
     <% end %>
   </div>
-  <%= link_to "Write a post", new_post_path, class: "btn btn-primary" %>
+  <div class="d-flex gap-2">
+    <div class="btn-group" role="group" aria-label="Sort posts">
+      <%= link_to "Newest", posts_path(tag: params[:tag].presence),
+                  class: "btn btn-outline-secondary #{"active" unless params[:sort] == "top"}" %>
+      <%= link_to "Top", posts_path(sort: "top", tag: params[:tag].presence),
+                  class: "btn btn-outline-secondary #{"active" if params[:sort] == "top"}" %>
+    </div>
+    <%= link_to "Write a post", new_post_path, class: "btn btn-primary" %>
+  </div>
 </div>
 
 <% if @posts.any? %>

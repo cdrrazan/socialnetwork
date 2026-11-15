@@ -21,7 +21,19 @@ FileUtils.chdir APP_ROOT do
   # end
 
   puts "\n== Preparing database =="
-  system! "bin/rails db:prepare"
+  unless system("bin/rails db:prepare")
+    abort <<~MESSAGE
+
+      Could not prepare the MySQL database. Check that MySQL 8.0.16+ is running and
+      that the app's user exists. With the defaults in config/database.yml:
+
+        mysql -u root -p -e "CREATE USER IF NOT EXISTS 'socialnetwork'@'127.0.0.1' IDENTIFIED BY 'socialnetwork';
+                             GRANT ALL PRIVILEGES ON \\`socialnetwork\\_%\\`.* TO 'socialnetwork'@'127.0.0.1';"
+
+      Or point the app at an existing server with DB_HOST, DB_PORT, DB_USERNAME
+      and DB_PASSWORD (see .env.example), then run bin/setup again.
+    MESSAGE
+  end
   system! "bin/rails db:reset" if ARGV.include?("--reset")
 
   puts "\n== Removing old logs and tempfiles =="

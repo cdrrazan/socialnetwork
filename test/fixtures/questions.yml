@@ -1,4 +1,0 @@
-minitest:
-  user: alice
-  title: How do I run one Minitest test?
-  body: I only want to run a single test while developing.

@@ -16,7 +16,9 @@
           <strong><%= question.title %></strong>
           <small class="text-body-secondary"><%= time_ago_in_words(question.created_at) %> ago</small>
         </div>
-        <small class="text-body-secondary">asked by <%= question.user.display_name %></small>
+        <small class="text-body-secondary">
+          asked by <%= question.user.display_name %> · <%= pluralize(question.answers_count, "answer") %>
+        </small>
       <% end %>
     <% end %>
   </div>

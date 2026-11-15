@@ -5,7 +5,7 @@ ruby ">= 3.3"
 gem "rails", "~> 8.1.4"
 
 # Database
-gem "sqlite3", ">= 2.1"
+gem "mysql2", "~> 0.5"
 
 # Web server
 gem "puma", ">= 6.0"
@@ -56,6 +56,11 @@ gem "tzinfo-data", platforms: %i[windows jruby]
 
 group :development, :test do
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
+
+  # RSpec test framework and test data
+  gem "rspec-rails", "~> 8.0"
+  gem "factory_bot_rails"
+  gem "faker"
   gem "dotenv-rails"
   gem "bundler-audit", require: false
   gem "brakeman", require: false
@@ -69,4 +74,6 @@ end
 group :test do
   gem "capybara"
   gem "cuprite"
+  gem "shoulda-matchers", "~> 7.0"
+  gem "simplecov", require: false
 end

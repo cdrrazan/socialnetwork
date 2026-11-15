@@ -1,44 +1,61 @@
-# SQLite. Versions 3.8.0 and up are supported.
-#   gem install sqlite3
+# MySQL 8.0.16 or newer (CI tests 8.0 and 8.4).
 #
-#   Ensure the SQLite 3 gem is defined in your Gemfile
-#   gem "sqlite3"
+# Connection settings come from environment variables so the same file works
+# locally, in Docker and in CI:
 #
+#   DB_HOST      (default: 127.0.0.1)
+#   DB_PORT      (default: 3306)
+#   DB_USERNAME  (default: socialnetwork)
+#   DB_PASSWORD  (default: socialnetwork in development/test; required in production)
+#
+# Alternatively set DATABASE_URL, e.g.
+#   mysql2://user:password@db.example.com:3306/socialnetwork_production
+# which takes precedence over the primary database settings below.
+#
+# Create the local user once with:
+#   CREATE USER 'socialnetwork'@'127.0.0.1' IDENTIFIED BY 'socialnetwork';
+#   GRANT ALL PRIVILEGES ON `socialnetwork\_%`.* TO 'socialnetwork'@'127.0.0.1';
 default: &default
-  adapter: sqlite3
+  adapter: mysql2
+  encoding: utf8mb4
+  collation: utf8mb4_unicode_ci
   max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  timeout: 5000
+  host: <%= ENV.fetch("DB_HOST", "127.0.0.1") %>
+  port: <%= ENV.fetch("DB_PORT", 3306) %>
+  username: <%= ENV.fetch("DB_USERNAME", "socialnetwork") %>
+  password: <%= ENV.fetch("DB_PASSWORD", "socialnetwork") %>
+  variables:
+    sql_mode: TRADITIONAL
 
 development:
   <<: *default
-  database: storage/development.sqlite3
+  # Overridable so tools such as script/rehearse_upgrade can work on a
+  # throwaway database without touching your development data.
+  database: <%= ENV.fetch("DB_DEVELOPMENT_NAME", "socialnetwork_development") %>
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: storage/test.sqlite3
+  database: socialnetwork_test
 
-# SQLite3 write its data on the local filesystem, as such it requires
-# persistent disks. If you are deploying to a managed service, you should
-# make sure it provides disk persistence, as many don't.
-#
-# Similarly, if you deploy your application as a Docker container, you must
-# ensure the database is located in a persisted volume.
+# Production keeps the Solid Cache, Solid Queue and Solid Cable tables in their
+# own databases on the same server, as the Rails 8 defaults do.
 production:
-  primary:
+  primary: &primary_production
     <<: *default
-    database: storage/production.sqlite3
+    database: <%= ENV.fetch("DB_NAME", "socialnetwork_production") %>
+    password: <%= ENV["DB_PASSWORD"] %>
   cache:
-    <<: *default
-    database: storage/production_cache.sqlite3
+    <<: *primary_production
+    database: <%= ENV.fetch("DB_NAME", "socialnetwork_production") %>_cache
     migrations_paths: db/cache_migrate
   queue:
-    <<: *default
-    database: storage/production_queue.sqlite3
+    <<: *primary_production
+    database: <%= ENV.fetch("DB_NAME", "socialnetwork_production") %>_queue
     migrations_paths: db/queue_migrate
   cable:
-    <<: *default
-    database: storage/production_cable.sqlite3
+    <<: *primary_production
+    database: <%= ENV.fetch("DB_NAME", "socialnetwork_production") %>_cable
     migrations_paths: db/cable_migrate
