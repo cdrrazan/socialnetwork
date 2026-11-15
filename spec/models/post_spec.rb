@@ -83,6 +83,14 @@ RSpec.describe Post do
       expect(described_class.tagged_with("rails")).to contain_exactly(tagged)
     end
 
+    it "caches the tag list on the post so listing posts needs no tag queries" do
+      post = create(:post, tag_list: "ruby, rails")
+      expect(post.reload.cached_tag_list).to eq("ruby, rails")
+
+      expect { described_class.includes(:taggings).find(post.id).tag_list }
+        .not_to make_database_queries(matching: /FROM `tags`/)
+    end
+
     it "removes tags no post uses any more" do
       post = create(:post, tag_list: "lonely")
       post.update!(tag_list: "")

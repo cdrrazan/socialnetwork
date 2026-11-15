@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_15_023944) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_15_024955) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -154,6 +154,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_023944) do
     t.integer "cached_votes_score", default: 0, null: false
     t.integer "cached_votes_up", default: 0, null: false
     t.integer "cached_votes_down", default: 0, null: false
+    t.string "cached_tag_list", limit: 1024
     t.index ["state", "created_at"], name: "index_posts_on_state_and_created_at"
     t.index ["user_id"], name: "index_posts_on_user_id"
     t.check_constraint "(`state` is null) or (`state` in (_utf8mb4'published',_utf8mb4'unpublished'))", name: "posts_valid_state"
