@@ -2,6 +2,14 @@
 #
 # Creates an admin for /admin, a few members with posts, questions, answers,
 # follows and a conversation so every page has something to show.
+#
+# These accounts have well-known passwords, so they are never created in
+# production (where `bin/rails db:prepare` runs the seeds automatically on a
+# new database) unless SEED_DEMO_DATA=true is set explicitly.
+if Rails.env.production? && ENV["SEED_DEMO_DATA"] != "true"
+  puts "Skipping demo seed data in production (set SEED_DEMO_DATA=true to load it)."
+  return
+end
 
 AdminUser.find_or_create_by!(email: "admin@example.com") do |admin|
   admin.password = admin.password_confirmation = "password"
