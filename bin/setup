@@ -24,7 +24,7 @@ FileUtils.chdir APP_ROOT do
   unless system("bin/rails db:prepare")
     abort <<~MESSAGE
 
-      Could not prepare the MySQL database. Check that MySQL 8.0+ is running and
+      Could not prepare the MySQL database. Check that MySQL 8.0.16+ is running and
       that the app's user exists. With the defaults in config/database.yml:
 
         mysql -u root -p -e "CREATE USER IF NOT EXISTS 'socialnetwork'@'127.0.0.1' IDENTIFIED BY 'socialnetwork';

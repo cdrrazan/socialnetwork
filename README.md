@@ -10,7 +10,7 @@
 ![MySQL 8](https://img.shields.io/badge/MySQL-8.0%20%7C%208.4-4479A1?logo=mysql&logoColor=white)
 ![Hotwire](https://img.shields.io/badge/Hotwire-Turbo%20%2B%20Stimulus-5CD8E5)
 ![Bootstrap 5.3](https://img.shields.io/badge/Bootstrap-5.3-7952B3?logo=bootstrap&logoColor=white)
-![RSpec](https://img.shields.io/badge/RSpec-445%20examples-E9573F?logo=rubygems&logoColor=white)
+![RSpec](https://img.shields.io/badge/RSpec-448%20examples-E9573F?logo=rubygems&logoColor=white)
 ![Coverage 100%](https://img.shields.io/badge/coverage-100%25%20lines%20%26%20branches-brightgreen)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
 ![No Node.js](https://img.shields.io/badge/Node.js-not%20required-339933?logo=nodedotjs&logoColor=white)
@@ -252,7 +252,7 @@ flowchart LR
 
 ## Database
 
-DevStory runs on **MySQL 8.0 or newer** (CI tests 8.0 and 8.4). The schema
+DevStory runs on **MySQL 8.0.16 or newer** (CI tests 8.0 and 8.4). The schema
 enforces the same rules as the models, so bad data is rejected even when
 validations are skipped:
 
@@ -265,6 +265,7 @@ validations are skipped:
 | Posts are either published or drafts | `CHECK (state IS NULL OR state IN ('published', 'unpublished'))` |
 | One follow and one conversation per pair of people | Unique composite indexes |
 | Emoji and every other character can be stored | `utf8mb4` everywhere; tags use `utf8mb4_bin` |
+| A 65,535-character post fits even in emoji | Body columns are `MEDIUMTEXT` (a `TEXT` column holds only 65,535 *bytes*) |
 
 Lists don't need a `COUNT` per row: comment, answer and vote counts and each
 post's tag list are cached on the row and kept up to date automatically.
@@ -286,7 +287,7 @@ See [doc/UPGRADING.md](doc/UPGRADING.md).
 | Tool | Version | Why |
 |---|---|---|
 | Ruby | 4.0 (≥ 3.3) | See [`.ruby-version`](.ruby-version). |
-| MySQL | 8.0 or newer | The database. `brew install mysql` / `apt install mysql-server`, or Docker (below). |
+| MySQL | 8.0.16 or newer | The database. `brew install mysql` / `apt install mysql-server`, or Docker (below). |
 | MySQL client headers | any | Needed to compile the `mysql2` gem (`libmysqlclient-dev` on Debian/Ubuntu; included with Homebrew's `mysql`). |
 | libvips | any recent | Resizes profile pictures (`brew install vips` / `apt install libvips`). |
 | Chrome or Chromium | any recent | System specs only. |
@@ -381,7 +382,7 @@ The test suite is **RSpec** with FactoryBot, Shoulda Matchers and Capybara
 transactions that are rolled back after each example.
 
 ```bash
-bin/rspec                                  # everything: 445 examples, ~40 s
+bin/rspec                                  # everything: 448 examples, ~40 s
 bin/rspec spec/models                      # one folder
 bin/rspec spec/requests/posts_spec.rb:42   # one example
 bin/ci                                     # lint, security scans, specs, seeds, data audit
@@ -399,7 +400,7 @@ reports coverage, so it never fails for that reason.
 | `spec/requests` | 147 | Every controller: sign-in redirects, authorization, strong params, 404s, Turbo status codes, JSON, sanitized HTML, query counts. |
 | `spec/requests/admin` | 33 | ActiveAdmin access, dashboard, filters, Ransack allowlist, publishing, moderator flag. |
 | `spec/system` | 19 | Real browser: sign-up/log-in, Trix, Turbo confirms, voting, sorting, comments, forum, follows, messages, avatar upload, mobile menu, admin publishing. |
-| `spec/db` | 25 | MySQL constraints (NOT NULL, foreign keys, unique, CHECK, bigint, utf8mb4) and the seed file. |
+| `spec/db` | 28 | MySQL constraints (NOT NULL, foreign keys, unique, CHECK, bigint, utf8mb4, MEDIUMTEXT bodies) and the seed file. |
 | `spec/channels`, `spec/jobs`, `spec/mailers`, `spec/tasks` | 14 | Cable authentication, deadlock retries, mail sender, rake task output and exit codes. |
 | `spec/factories_spec.rb` | 15 | Every factory and trait builds a valid record. |
 
@@ -413,6 +414,7 @@ Quality checks:
 | 📦 JS security | `bin/importmap audit` |
 | 🌱 Seeds | `RAILS_ENV=test bin/rails db:seed:replant` |
 | 🗄️ Data | `bin/rails data:audit` |
+| 🔁 Upgrade path | `script/rehearse_upgrade` (builds a 2017-style database, migrates it, compares with `db/schema.rb`) |
 
 ### Continuous integration
 
@@ -430,6 +432,7 @@ flowchart LR
     M1 --> M2["bin/rspec<br/>incl. system specs, 100% coverage"]
     M2 --> M3["seeds + data:audit"]
     M3 --> M4["coverage report artifact"]
+    Push --> Rehearsal["upgrade-rehearsal<br/>2017-style database → migrations<br/>→ identical to schema.rb"]
 ```
 
 ## Docker
@@ -541,7 +544,9 @@ doc/
 ├── UPGRADING.md      Migrating a 2017 installation
 └── screenshots/      Images used in this README
 lib/tasks/data.rake   data:audit and data:reset_counters
-script/screenshots.js Regenerates the screenshots
+script/
+├── rehearse_upgrade  Rehearses upgrading a 2017 database
+└── screenshots.js    Regenerates the screenshots
 spec/                 RSpec: models, policies, services, requests, admin,
                       system, db constraints, channels, jobs, mailers, tasks
 ├── factories/        FactoryBot factories and traits
@@ -560,6 +565,7 @@ spec/                 RSpec: models, policies, services, requests, admin,
 | Reset the database | `bin/rails db:reset` |
 | Run migrations | `bin/rails db:migrate` |
 | Check data integrity | `bin/rails data:audit` |
+| Rehearse upgrading a 2017 database | `script/rehearse_upgrade` |
 | Fix counter caches | `bin/rails data:reset_counters` |
 | Run every spec (with coverage) | `bin/rspec` |
 | Run one spec file or line | `bin/rspec spec/models/post_spec.rb:42` |

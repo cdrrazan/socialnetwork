@@ -1,4 +1,4 @@
-# MySQL 8.0+ (MariaDB 10.6+ also works).
+# MySQL 8.0.16 or newer (CI tests 8.0 and 8.4).
 #
 # Connection settings come from environment variables so the same file works
 # locally, in Docker and in CI:

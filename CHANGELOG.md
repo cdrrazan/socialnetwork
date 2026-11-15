@@ -1,5 +1,62 @@
 # Changelog
 
+## 2026-11: MySQL, schema upgrade and RSpec
+
+### Database
+
+- Back on **MySQL** (8.0.16+, tested on 8.0 and 8.4) instead of SQLite, with
+  utf8mb4, strict SQL mode and connection settings from `DB_*` variables.
+  Production keeps Solid Cache/Queue/Cable in their own MySQL databases.
+- Schema brought up to date: `BIGINT` keys everywhere, `NOT NULL` on every
+  required column, microsecond timestamps, foreign keys on every reference,
+  CHECK constraints (post states, no self-follows or self-conversations),
+  indexes for the blog, forum and activity feed, `utf8mb4` for 2017 tables,
+  `MEDIUMTEXT` bodies so 65,535-character posts fit in any script, and the
+  unused `posts.slug` removed.
+- Counter caches for comments, answers and votes, and a cached tag list on
+  posts, all back-filled from existing rows. The blog index now runs the same
+  number of queries however many posts it shows.
+- `bin/rails data:audit` reports rows that break the rules (and works on a
+  2017 database before migrating); `bin/rails data:reset_counters` fixes
+  counters. The schema migration refuses to run while required columns
+  contain NULLs.
+- `script/rehearse_upgrade` (also a CI job) upgrades a 2017-style database
+  with 2017-style data and checks it ends up identical to a fresh install.
+
+### Tests
+
+- Minitest replaced by **RSpec**: 448 examples across models, policies,
+  services, requests, ActiveAdmin, MySQL constraints, seeds, channels, jobs,
+  mailers, rake tasks and real-browser system specs (Cuprite).
+- **100% line and branch coverage**, enforced by SimpleCov on every full run.
+- CI runs the suite on Ruby 3.3, 3.4 and 4.0 against MySQL 8.4, and on MySQL
+  8.0, checks migrations from scratch reproduce `db/schema.rb`, and audits the
+  seeded data.
+
+### Fixes found by the new specs
+
+- Failed log-ins and sign-ups returned 200, so Turbo never showed the error
+  messages; Devise now answers 422/303.
+- A rejected (non-image) avatar upload crashed the profile form.
+- "Similar posts" matched unrelated posts through words like "the" and "and";
+  stop words are now ignored.
+- The blog index ran two tag queries per post.
+- `DataAudit` crashed on databases without a `posts.state` column.
+- Seven 2017 migrations used `def self.up`, which skipped the Rails 5.0
+  compatibility layer and produced different column types from run to run.
+- `db:prepare` seeded demo accounts with the password "password" into a new
+  production database; demo data now needs `SEED_DEMO_DATA=true`.
+
+### Other
+
+- `ApplicationJob` retries MySQL deadlocks; Action Cable connections are
+  authenticated with the Devise session; emails are sent from `MAILER_FROM`
+  through `ApplicationMailer`.
+- The blog can be sorted by top-voted posts; tags are stored lowercase and
+  unused tags are deleted.
+- Docker Compose runs the app together with MySQL 8.4; `bin/setup` explains
+  how to create the MySQL user when it can't connect.
+
 ## 2026-11: Rails 8.1 revamp
 
 A complete modernisation of the 2017 codebase. See
