@@ -185,9 +185,8 @@ class DataAudit
     end
   end
 
+  # Callers check the table and columns exist (see #column?) before calling.
   def problem_from(check, description, table, condition)
-    return unless connection.table_exists?(table)
-
     count = connection.select_value("SELECT COUNT(*) FROM #{quote_table(table)} WHERE #{condition}").to_i
     return if count.zero?
 

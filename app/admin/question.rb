@@ -10,7 +10,7 @@ ActiveAdmin.register Question do
     selectable_column
     id_column
     column :title
-    column(:author) { |question| question.user&.display_name }
+    column(:author) { |question| question.user.display_name }
     column(:answers) { |question| question.answers.size }
     column :created_at
     actions

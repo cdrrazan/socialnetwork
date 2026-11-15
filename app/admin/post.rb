@@ -36,7 +36,7 @@ ActiveAdmin.register Post do
     selectable_column
     id_column
     column :title
-    column(:author) { |post| post.user&.display_name }
+    column(:author) { |post| post.user.display_name }
     column(:state) { |post| status_tag(post.state || "published") }
     column :created_at
     actions
@@ -45,7 +45,7 @@ ActiveAdmin.register Post do
   show do
     attributes_table do
       row :title
-      row(:author) { |post| post.user&.display_name }
+      row(:author) { |post| post.user.display_name }
       row(:state) { |post| status_tag(post.state || "published") }
       row :tag_list
       row :created_at
