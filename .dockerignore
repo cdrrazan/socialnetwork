@@ -45,3 +45,6 @@
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
+
+# Ignore locally installed gems.
+/vendor/bundle
