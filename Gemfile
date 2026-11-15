@@ -64,7 +64,6 @@ end
 
 group :development do
   gem "web-console"
-  gem "rails-erd", require: false
 end
 
 group :test do
