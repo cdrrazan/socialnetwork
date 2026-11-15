@@ -14,7 +14,12 @@ module Socialnetwork
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w[assets tasks])
+    config.autoload_lib(ignore: %w[assets tasks templates])
+
+    # Bootstrap 5 and ActiveAdmin 3 still use Sass @import and global
+    # functions; keep their deprecation noise out of the logs.
+    config.sass.quiet_deps = true
+    config.sass.silence_deprecations = %w[import global-builtin color-functions]
 
     # Configuration for the application, engines, and railties goes here.
     #

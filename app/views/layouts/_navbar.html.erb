@@ -1,11 +1,50 @@
-<nav class="navbar  navbar-toggleable-md navbar-light bg-faded navbar-right">
-		
-		<button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-				<span class="navbar-toggler-icon"></span>
-		</button>
-		<!--  <a class="navbar-brand" href="#"> .. </a> -->
-		<div class="navbar collapse navbar-collapse " id="navbarSupportedContent">
-				<%= render 'layouts/navlogin' %>
-				<%= render 'layouts/navloggedin' %>
-		</div>
+<nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom">
+  <div class="container">
+    <%= link_to root_path, class: "navbar-brand d-flex align-items-center gap-2" do %>
+      <%= image_tag "logo.png", alt: "" %>
+      <span>DevStory</span>
+    <% end %>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-nav"
+            aria-controls="main-nav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="main-nav">
+      <% if user_signed_in? %>
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><%= link_to "Blog", posts_path, class: "nav-link" %></li>
+          <li class="nav-item"><%= link_to "Forum", questions_path, class: "nav-link" %></li>
+          <li class="nav-item"><%= link_to "People", users_path, class: "nav-link" %></li>
+          <li class="nav-item"><%= link_to "Activity", activities_path, class: "nav-link" %></li>
+          <li class="nav-item"><%= link_to "Messages", conversations_path, class: "nav-link" %></li>
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <%= current_user.display_name %>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><%= link_to "My profile", profile_path, class: "dropdown-item" %></li>
+              <li><%= link_to "Friends", my_friends_path, class: "dropdown-item" %></li>
+              <li><%= link_to "Edit profile", edit_user_registration_path, class: "dropdown-item" %></li>
+              <li><%= link_to "Settings", settings_path, class: "dropdown-item" %></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "dropdown-item" %></li>
+            </ul>
+          </li>
+        </ul>
+      <% else %>
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><%= link_to "Forum", questions_path, class: "nav-link" %></li>
+          <li class="nav-item"><%= link_to "About", about_path, class: "nav-link" %></li>
+          <li class="nav-item"><%= link_to "Contact", contact_path, class: "nav-link" %></li>
+        </ul>
+        <div class="d-flex gap-2">
+          <%= link_to "Log in", new_user_session_path, class: "btn btn-outline-primary" %>
+          <%= link_to "Sign up", new_user_registration_path, class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
 </nav>

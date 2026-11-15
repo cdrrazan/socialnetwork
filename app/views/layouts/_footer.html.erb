@@ -1,15 +1,9 @@
-
-<div class='footerholder'>
-	<div class="footer">
-		<nav>
-			<ul>
-				<!-- <li><%= link_to "About",   '#' %></li> -->
-	      		<!-- <li><%= link_to "Fee Guide", '#' %></li> -->
-	      		<li><%= link_to "Contact Us", "#" %></li>
-	      		<li><%= link_to "Terms of Use",   "#" %></li>
-	      		<li><%= link_to "Privacy Policy",   "#" %></li>
-	      		
-			</ul>
-		</nav>
-	</div>	
-	</div>
+<footer class="border-top py-4 mt-auto">
+  <div class="container d-flex flex-wrap justify-content-between align-items-center text-body-secondary small">
+    <span>&copy; <%= Date.current.year %> DevStory</span>
+    <ul class="nav">
+      <li class="nav-item"><%= link_to "About", about_path, class: "nav-link px-2 text-body-secondary" %></li>
+      <li class="nav-item"><%= link_to "Contact", contact_path, class: "nav-link px-2 text-body-secondary" %></li>
+    </ul>
+  </div>
+</footer>
