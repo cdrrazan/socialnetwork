@@ -130,25 +130,28 @@ class DataAudit
   end
 
   def duplicate_usernames
-    problem_from(:duplicate_username, "accounts sharing a username (case-insensitive)", "users", <<~SQL.squish)
-      LOWER(username) IN (
-        SELECT name FROM (
-          SELECT LOWER(username) AS name FROM users
-          WHERE username IS NOT NULL AND username <> ''
-          GROUP BY LOWER(username) HAVING COUNT(*) > 1
-        ) duplicates
-      )
+    names = connection.select_values(<<~SQL.squish)
+      SELECT LOWER(username) FROM users
+      WHERE username IS NOT NULL AND username <> ''
+      GROUP BY LOWER(username) HAVING COUNT(*) > 1
     SQL
+    return if names.empty?
+
+    list = names.map { |name| connection.quote(name) }.join(", ")
+    problem_from(:duplicate_username, "accounts sharing a username (case-insensitive)", "users",
+                 "LOWER(username) IN (#{list})")
   end
 
   def self_references
     [
-      problem_from(:self_follow, "users following themselves", "friendships", "user_id = friend_id"),
-      problem_from(:self_conversation, "conversations with yourself", "conversations", "author_id = receiver_id")
+      (problem_from(:self_follow, "users following themselves", "friendships", "user_id = friend_id") if column?("friendships", "user_id", "friend_id")),
+      (problem_from(:self_conversation, "conversations with yourself", "conversations", "author_id = receiver_id") if column?("conversations", "author_id", "receiver_id"))
     ].compact
   end
 
   def duplicate_friendships
+    return [] unless column?("friendships", "user_id", "friend_id")
+
     count = connection.select_value(<<~SQL.squish).to_i
       SELECT COALESCE(SUM(c - 1), 0) FROM (
         SELECT COUNT(*) AS c FROM friendships GROUP BY user_id, friend_id HAVING COUNT(*) > 1
@@ -160,6 +163,8 @@ class DataAudit
   end
 
   def invalid_post_states
+    return [] unless column?("posts", "state")
+
     [ problem_from(:invalid_state, "posts with an unknown state", "posts",
                    "state IS NOT NULL AND state NOT IN ('published', 'unpublished')") ].compact
   end
@@ -192,8 +197,8 @@ class DataAudit
     Problem.new(check: check, description: description, count: count, sample_ids: ids)
   end
 
-  def column?(table, column)
-    connection.table_exists?(table) && connection.column_exists?(table, column)
+  def column?(table, *columns)
+    connection.table_exists?(table) && columns.all? { |column| connection.column_exists?(table, column) }
   end
 
   def quote(column)
