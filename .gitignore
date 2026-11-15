@@ -15,3 +15,12 @@
 
 # Ignore Byebug command history file.
 .byebug_history
+
+# Ignore local environment variables (see .env.example).
+/.env
+/.env.*
+!/.env.example
+
+# Editor / OS noise
+.projectile
+.DS_Store
