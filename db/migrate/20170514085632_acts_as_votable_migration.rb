@@ -1,5 +1,5 @@
 class ActsAsVotableMigration < ActiveRecord::Migration[5.0]
-  def self.up
+  def up
     create_table :votes do |t|
       t.references :votable, polymorphic: true
       t.references :voter, polymorphic: true
@@ -20,7 +20,7 @@ class ActsAsVotableMigration < ActiveRecord::Migration[5.0]
     add_index :votes, [ :votable_id, :votable_type, :vote_scope ]
   end
 
-  def self.down
+  def down
     drop_table :votes
   end
 end

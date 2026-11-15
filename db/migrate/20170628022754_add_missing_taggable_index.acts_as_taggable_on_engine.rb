@@ -1,10 +1,10 @@
 # This migration comes from acts_as_taggable_on_engine (originally 4)
 class AddMissingTaggableIndex < ActiveRecord::Migration[5.0]
-  def self.up
+  def up
     add_index :taggings, [ :taggable_id, :taggable_type, :context ] unless index_exists?(:taggings, [ :taggable_id, :taggable_type, :context ])
   end
 
-  def self.down
+  def down
     remove_index :taggings, [ :taggable_id, :taggable_type, :context ]
   end
 end
