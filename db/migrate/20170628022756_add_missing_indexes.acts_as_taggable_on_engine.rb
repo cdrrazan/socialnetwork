@@ -7,7 +7,7 @@ class AddMissingIndexes < ActiveRecord::Migration[5.0]
     add_index :taggings, :tagger_id unless index_exists?(:taggings, :tagger_id)
     add_index :taggings, :context unless index_exists?(:taggings, :context)
 
-    add_index :taggings, [:tagger_id, :tagger_type] unless index_exists?(:taggings, [:tagger_id, :tagger_type])
-    add_index :taggings, [:taggable_id, :taggable_type, :tagger_id, :context], name: 'taggings_idy' unless index_exists?(:taggings, [:taggable_id, :taggable_type, :tagger_id, :context])
+    add_index :taggings, [ :tagger_id, :tagger_type ] unless index_exists?(:taggings, [ :tagger_id, :tagger_type ])
+    add_index :taggings, [ :taggable_id, :taggable_type, :tagger_id, :context ], name: 'taggings_idy' unless index_exists?(:taggings, [ :taggable_id, :taggable_type, :tagger_id, :context ])
   end
 end

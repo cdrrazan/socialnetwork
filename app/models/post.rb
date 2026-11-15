@@ -11,7 +11,7 @@ class Post < ApplicationRecord
 
   # Posts created by users have no state; posts created from the admin panel
   # are drafted as "unpublished" until an admin publishes them.
-  scope :published, -> { where(state: [nil, "published"]) }
+  scope :published, -> { where(state: [ nil, "published" ]) }
   scope :unpublished, -> { where(state: "unpublished") }
   scope :newest_first, -> { order(created_at: :desc) }
 

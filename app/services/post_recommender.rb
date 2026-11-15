@@ -23,7 +23,7 @@ class PostRecommender
 
     documents = corpus.map { |(_, body)| document_for(body) }
     target = document_for(@post.body)
-    model = TfIdfSimilarity::TfIdfModel.new([target, *documents])
+    model = TfIdfSimilarity::TfIdfModel.new([ target, *documents ])
     scores = model.similarity_matrix.row(0).to_a.drop(1)
 
     ranked_ids = corpus.map(&:first).zip(scores)

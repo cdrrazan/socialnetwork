@@ -25,9 +25,9 @@ class User < ApplicationRecord
 
   # Profile picture (Active Storage; previously a Paperclip attachment)
   has_one_attached :avatar do |attachable|
-    attachable.variant :thumbnail, resize_to_fill: [200, 250]
-    attachable.variant :medium, resize_to_limit: [300, 300]
-    attachable.variant :large, resize_to_limit: [600, 600]
+    attachable.variant :thumbnail, resize_to_fill: [ 200, 250 ]
+    attachable.variant :medium, resize_to_limit: [ 300, 300 ]
+    attachable.variant :large, resize_to_limit: [ 600, 600 ]
   end
 
   validates :username, presence: true, uniqueness: { case_sensitive: false },
