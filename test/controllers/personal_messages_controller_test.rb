@@ -18,6 +18,14 @@ class PersonalMessagesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to conversation_path(Conversation.order(:id).last)
   end
 
+  test "a blank first message does not create a conversation" do
+    sign_in users(:carol)
+    assert_no_difference [ "Conversation.count", "PersonalMessage.count" ] do
+      post personal_messages_path, params: { receiver_id: users(:alice).id, personal_message: { body: "" } }
+    end
+    assert_response :unprocessable_content
+  end
+
   test "replying in a conversation" do
     sign_in users(:bob)
     assert_difference("PersonalMessage.count") do

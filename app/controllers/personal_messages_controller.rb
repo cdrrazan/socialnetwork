@@ -9,13 +9,17 @@ class PersonalMessagesController < ApplicationController
   end
 
   def create
-    @conversation ||= Conversation.create!(author: current_user, receiver: @receiver)
-    @personal_message = current_user.personal_messages.build(personal_message_params.merge(conversation: @conversation))
+    @personal_message = current_user.personal_messages.build(personal_message_params)
+    # A brand-new conversation is saved together with its first message, so a
+    # blank first message doesn't leave an empty conversation behind.
+    @personal_message.conversation = @conversation || Conversation.new(author: current_user, receiver: @receiver)
 
     if @personal_message.save
-      redirect_to @conversation, notice: "Your message was sent."
-    else
+      redirect_to @personal_message.conversation, notice: "Your message was sent."
+    elsif @conversation
       redirect_to @conversation, alert: "Message can't be blank."
+    else
+      render :new, status: :unprocessable_content
     end
   end
 
