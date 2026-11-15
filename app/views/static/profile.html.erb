@@ -11,7 +11,9 @@
 <hr />
 
 <div class="profile">
-<%= image_tag current_user.user_image.url(:medium),alt: "no profile picture found" %>
+<% if current_user.avatar.attached? %>
+  <%= image_tag current_user.avatar.variant(:medium), alt: "Profile picture" %>
+<% end %>
 		<br/>
 Followers:: <%= @followers.size %>
 Following:: <%= @following.size %>

@@ -2,8 +2,8 @@
 <h2 class="header">Following</h2><%= @friendships.size %></span>
 <% if @friendships.size > 0  %>
 		<% @friendships.each do |friend| %>
-				<% if friend.user_image? %>
-						<%= image_tag friend.user_image.url(:thumbnail), alt: "no profile pic" %>
+				<% if friend.avatar.attached? %>
+						<%= image_tag friend.avatar.variant(:thumbnail), alt: "no profile pic" %>
 				<% else %>
 						<p>Profile picture not found</p>
 				<% end %>

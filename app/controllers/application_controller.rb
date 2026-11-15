@@ -19,7 +19,7 @@ class ApplicationController < ActionController::Base
   protected
 
   def configure_permitted_paramaters
-    devise_parameter_sanitizer.permit(:account_update, keys: [:user_image,:username])
+    devise_parameter_sanitizer.permit(:account_update, keys: [:avatar,:username])
   end
 
   def configure_permitted_paramaters_for_registration

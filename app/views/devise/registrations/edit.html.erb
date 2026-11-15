@@ -4,8 +4,8 @@
 		<%= devise_error_messages! %>
 
 <div class="field">
-      <%= f.label :profile_image %>
-      <%= f.file_field :user_image,class: "form-control",autocomplete: "on" %>
+      <%= f.label :avatar, "Profile picture" %>
+      <%= f.file_field :avatar, accept: "image/*",class: "form-control",autocomplete: "on" %>
   </div>
   <br>
   <div class="field">

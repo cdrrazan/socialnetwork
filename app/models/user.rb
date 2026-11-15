@@ -26,9 +26,13 @@ class User < ApplicationRecord
     end
   end
 
-  # for image upload feature
-  has_attached_file :user_image, :styles => {medium: "300*300>", large: "600*600>", thumbnail: "200*250#"}
-  validates_attachment_content_type :user_image, content_type: /\Aimage\/.*\z/
+  # Profile picture (Active Storage; previously a Paperclip attachment)
+  has_one_attached :avatar do |attachable|
+    attachable.variant :thumbnail, resize_to_fill: [200, 250]
+    attachable.variant :medium, resize_to_limit: [300, 300]
+    attachable.variant :large, resize_to_limit: [600, 600]
+  end
+  validate :avatar_is_an_image
 
   has_many :friendships
   has_many :friends, through: :friendships
@@ -50,6 +54,12 @@ class User < ApplicationRecord
   # end
 
   private
+
+  def avatar_is_an_image
+    return unless avatar.attached?
+    errors.add(:avatar, "must be an image") unless avatar.content_type.to_s.start_with?("image/")
+  end
+
   def create_permalink
     if username
       self.permalink = username.downcase
