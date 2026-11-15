@@ -1,82 +1,66 @@
 class QuestionsController < ApplicationController
-  before_action :authenticate_user!, except: [:index,:show]
-  before_action :set_question, only: [:show, :edit, :update, :destroy]
+  before_action :authenticate_user!, except: %i[index show]
+  before_action :set_question, only: %i[show edit update destroy]
 
-  # GET /questions
-  # GET /questions.json
   def index
-    @questions = Question.all
+    @questions = Question.includes(:user).newest_first
   end
 
-  # GET /questions/1
-  # GET /questions/1.json
   def show
+    @answers = @question.answers.includes(:user).chronological
+    @answer = @question.answers.build
   end
 
-  # GET /questions/new
   def new
-    @question = current_user.questions.build
+    @question = authorize current_user.questions.build
   end
 
-  # GET /questions/1/edit
-  def edit
-    authorize! :update, @question
-  end
-
-  # POST /questions
-  # POST /questions.json
   def create
-    @question = current_user.questions.build(question_params)
+    @question = authorize current_user.questions.build(question_params)
 
     respond_to do |format|
       if @question.save
-        format.html { redirect_to @question, notice: 'Question was successfully created.' }
+        format.html { redirect_to @question, notice: "Question was successfully created." }
         format.json { render :show, status: :created, location: @question }
       else
-        format.html { render :new }
-        format.json { render json: @question.errors, status: :unprocessable_entity }
+        format.html { render :new, status: :unprocessable_content }
+        format.json { render json: @question.errors, status: :unprocessable_content }
       end
     end
   end
 
-  # PATCH/PUT /questions/1
-  # PATCH/PUT /questions/1.json
+  def edit
+  end
+
   def update
-    if current_user == @question.user
-      @question.update(question_params)
-      @question.save
-      flash[:notice] = "Edit sucessful: #{@question.title}"
-      redirect_to @question
-    # respond_to do |format|
-    #   if @question.update(question_params)
-    #     format.html { redirect_to @question, notice: 'Question was successfully updated.' }
-    #     format.json { render :show, status: :ok, location: @question }
-    #   else
-    #     format.html { render :edit }
-    #     format.json { render json: @question.errors, status: :unprocessable_entity }
-    #   end
+    respond_to do |format|
+      if @question.update(question_params)
+        format.html { redirect_to @question, notice: "Question was successfully updated." }
+        format.json { render :show, status: :ok, location: @question }
+      else
+        format.html { render :edit, status: :unprocessable_content }
+        format.json { render json: @question.errors, status: :unprocessable_content }
+      end
     end
   end
 
-  # DELETE /questions/1
-  # DELETE /questions/1.json
   def destroy
-    authorize! :destroy, @question
-    @question.destroy
+    @question.destroy!
+
     respond_to do |format|
-      format.html { redirect_to questions_url, notice: 'Question was successfully deleted.' }
+      format.html { redirect_to questions_path, notice: "Question was successfully deleted.", status: :see_other }
       format.json { head :no_content }
     end
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_question
-      @question = Question.find(params[:id])
-    end
 
-    # white listing params
-    def question_params
-      params.require(:question).permit(:title, :body)
-    end
+  def set_question
+    @question = Question.find(params[:id])
+    authorize @question
+  end
+
+  def question_params
+    params.expect(question: [ :title, :body ])
+  end
 end

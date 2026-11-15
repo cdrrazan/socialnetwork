@@ -1,24 +1,32 @@
 class AnswersController < ApplicationController
+  before_action :authenticate_user!
+  before_action :set_question
+
   def create
-    @question = Question.find(params[:question_id])
-    @answer = @question.answers.create(params[:answer].permit(:body))
-    @answer.user_id = current_user.id
-    @answer.save
+    @answer = @question.answers.build(answer_params.merge(user: current_user))
+    authorize @answer
 
     if @answer.save
-      flash[:notice] = "Your answer was successfully submitted..."
-      redirect_to question_path(@question)
+      redirect_to @question, notice: "Your answer was submitted."
     else
-      flash[:notice] = "Answer was not saved!!!"
-      redirect_to question_path(@question)
+      redirect_to @question, alert: "Your answer could not be saved: #{@answer.errors.full_messages.to_sentence}."
     end
   end
 
   def destroy
-    @question = Question.find(params[:question_id])
     @answer = @question.answers.find(params[:id])
-    @answer.destroy
-    redirect_to question_path(@question)
+    authorize @answer
+    @answer.destroy!
+    redirect_to @question, notice: "Answer deleted.", status: :see_other
   end
 
+  private
+
+  def set_question
+    @question = Question.find(params[:question_id])
+  end
+
+  def answer_params
+    params.expect(answer: [ :body ])
+  end
 end

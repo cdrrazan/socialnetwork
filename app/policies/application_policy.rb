@@ -1,3 +1,4 @@
+# Base Pundit policy. Everything is denied unless a subclass allows it.
 class ApplicationPolicy
   attr_reader :user, :record
 
@@ -6,48 +7,44 @@ class ApplicationPolicy
     @record = record
   end
 
-  def index?
-    false
+  def index? = false
+  def show? = false
+  def create? = false
+  def new? = create?
+  def update? = false
+  def edit? = update?
+  def destroy? = false
+
+  private
+
+  def signed_in?
+    user.present?
   end
 
-  def show?
-    scope.where(:id => record.id).exists?
+  def admin?
+    user&.admin? || false
   end
 
-  def create?
-    false
+  def owner?
+    signed_in? && record.respond_to?(:user_id) && record.user_id == user.id
   end
 
-  def new?
-    create?
-  end
-
-  def update?
-    false
-  end
-
-  def edit?
-    update?
-  end
-
-  def destroy?
-    false
-  end
-
-  def scope
-    Pundit.policy_scope!(user, record.class)
+  def owner_or_admin?
+    owner? || admin?
   end
 
   class Scope
-    attr_reader :user, :scope
-
     def initialize(user, scope)
       @user = user
       @scope = scope
     end
 
     def resolve
-      scope
+      scope.all
     end
+
+    private
+
+    attr_reader :user, :scope
   end
 end
