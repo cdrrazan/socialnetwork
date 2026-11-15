@@ -118,6 +118,20 @@ RSpec.describe DataAudit, :legacy_tables do
       end
     end
 
+    it "skips follow checks on a friendships table without friend_id" do
+      with_legacy_table(:friendships, id: "bigint", user_id: "bigint") do
+        legacy_insert(:friendships, { id: 1, user_id: 1 })
+        expect(checks).not_to include(:self_follow, :duplicate_friendship)
+      end
+    end
+
+    it "skips the self-conversation check on a conversations table without receiver_id" do
+      with_legacy_table(:conversations, id: "bigint", author_id: "bigint") do
+        legacy_insert(:conversations, { id: 1, author_id: 1 })
+        expect(checks).not_to include(:self_conversation)
+      end
+    end
+
     it "reports conversations with yourself" do
       user = create(:user)
       with_legacy_table(:conversations, id: "bigint", author_id: "bigint", receiver_id: "bigint") do
