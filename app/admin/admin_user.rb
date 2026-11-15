@@ -1,11 +1,7 @@
 ActiveAdmin.register AdminUser do
+  menu priority: 5, label: "Admins"
   permit_params :email, :password, :password_confirmation
 
-   ActiveAdmin.setup do |config|
-     config.comments = false
-   end
-
-  
   index do
     selectable_column
     id_column
@@ -22,12 +18,11 @@ ActiveAdmin.register AdminUser do
   filter :created_at
 
   form do |f|
-    f.inputs "Admin Details" do
+    f.inputs "Admin details" do
       f.input :email
       f.input :password
       f.input :password_confirmation
     end
     f.actions
   end
-
 end

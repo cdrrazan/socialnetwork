@@ -27,4 +27,13 @@ class Post < ApplicationRecord
   def similar_posts(limit: 5)
     PostRecommender.new(self).similar(limit: limit)
   end
+
+  # Attributes the ActiveAdmin filters may search on (Ransack allowlist).
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[id title body state created_at updated_at]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    []
+  end
 end

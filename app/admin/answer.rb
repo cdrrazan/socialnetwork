@@ -1,15 +1,17 @@
 ActiveAdmin.register Answer do
-# See permitted parameters documentation:
-# https://github.com/activeadmin/activeadmin/blob/master/docs/2-resource-customization.md#setting-up-strong-parameters
-#
-# permit_params :list, :of, :attributes, :on, :model
-#
-# or
-#
-# permit_params do
-#   permitted = [:permitted, :attributes]
-#   permitted << :other if params[:action] == 'create' && current_user.admin?
-#   permitted
-# end
+  menu parent: "Questions"
+  actions :all, except: %i[new edit]
 
+  filter :body
+  filter :created_at
+
+  index do
+    selectable_column
+    id_column
+    column(:question) { |answer| link_to answer.question.title, admin_question_path(answer.question) }
+    column(:author) { |answer| answer.user&.display_name }
+    column(:body) { |answer| truncate(answer.body, length: 80) }
+    column :created_at
+    actions
+  end
 end
