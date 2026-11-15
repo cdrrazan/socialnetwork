@@ -20,9 +20,12 @@ unless ENV["COVERAGE"] == "false"
     add_group "Services", "app/services"
     add_group "Tasks", "lib/tasks"
 
-    # Running a single file shouldn't fail the build; the full suite must
-    # cover every line.
-    minimum_coverage line: 100 if ENV["COVERAGE_MINIMUM"] != "false" && ARGV.none? { |arg| arg.end_with?(".rb") || arg.include?(".rb:") }
+    # The full suite (`bin/rspec` with no arguments, or CI) must cover every
+    # line and branch. Running a subset only reports, so it never "fails" for
+    # missing coverage.
+    if ARGV.empty? || ENV["COVERAGE_MINIMUM"] == "true"
+      minimum_coverage line: 100, branch: 100
+    end
   end
 end
 
