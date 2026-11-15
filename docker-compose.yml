@@ -1,18 +1,40 @@
-# Runs the production image locally:
+# Runs the production image locally together with MySQL:
 #
 #   SECRET_KEY_BASE=$(bin/rails secret) docker compose up --build
 #
-# then open http://localhost:3000. Data (SQLite databases and uploads) is kept
-# in the `storage` volume. Seed demo data with:
+# then open http://localhost:3000. MySQL data lives in the `mysql` volume and
+# uploads in the `storage` volume. Seed demo data with:
 #
-#   docker compose exec web bin/rails db:seed
+#   docker compose exec -e SEED_DEMO_DATA=true web bin/rails db:seed
+#
+# The database password below is for local use only; set DB_PASSWORD (and
+# MYSQL_ROOT_PASSWORD) to real secrets anywhere else.
 services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+    volumes:
+      - mysql:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${MYSQL_ROOT_PASSWORD:-root}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
   web:
     build: .
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "3000:3000"
     environment:
       SECRET_KEY_BASE: ${SECRET_KEY_BASE:?Set SECRET_KEY_BASE, e.g. SECRET_KEY_BASE=$(bin/rails secret)}
+      DB_HOST: db
+      DB_USERNAME: socialnetwork
+      DB_PASSWORD: ${DB_PASSWORD:-socialnetwork}
       APP_HOST: localhost
       FORCE_SSL: "false"
       SOLID_QUEUE_IN_PUMA: "true"
@@ -22,4 +44,5 @@ services:
       - storage:/rails/storage
 
 volumes:
+  mysql:
   storage:
