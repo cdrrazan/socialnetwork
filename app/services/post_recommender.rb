@@ -2,7 +2,7 @@ require "matrix"
 require "tf-idf-similarity"
 
 # Recommends posts similar to a given post using TF-IDF weighted term vectors
-# and cosine similarity (see doc/recommendations.org for the background).
+# and cosine similarity (see doc/recommendations.md for the background).
 #
 #   PostRecommender.new(post).similar(limit: 5) # => [#<Post>, ...]
 #
