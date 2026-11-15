@@ -3,12 +3,20 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [ master, main ]
+    branches: [ main, master ]
+
+# mysql2 compiles against the MySQL client library, so every job that runs
+# `bundle install` needs libmysqlclient-dev.
+env:
+  APT_PACKAGES: libmysqlclient-dev
 
 jobs:
   scan_ruby:
     runs-on: ubuntu-latest
     steps:
+      - name: Install packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y $APT_PACKAGES
+
       - name: Checkout code
         uses: actions/checkout@v6
 
@@ -26,6 +34,9 @@ jobs:
   scan_js:
     runs-on: ubuntu-latest
     steps:
+      - name: Install packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y $APT_PACKAGES
+
       - name: Checkout code
         uses: actions/checkout@v6
 
@@ -42,6 +53,9 @@ jobs:
     env:
       RUBOCOP_CACHE_ROOT: tmp/rubocop
     steps:
+      - name: Install packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y $APT_PACKAGES
+
       - name: Checkout code
         uses: actions/checkout@v6
 
@@ -63,16 +77,42 @@ jobs:
       - name: Lint code for consistent style
         run: bin/rubocop -f github
 
-  test:
-    name: test (Ruby ${{ matrix.ruby }})
+  rspec:
+    name: rspec (Ruby ${{ matrix.ruby }}, MySQL ${{ matrix.mysql }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         ruby: [ "3.3", "3.4", "4.0" ]
+        mysql: [ "8.4" ]
+        include:
+          # Oldest supported MySQL, on the default Ruby.
+          - ruby: "4.0"
+            mysql: "8.0"
+
+    services:
+      mysql:
+        image: mysql:${{ matrix.mysql }}
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      RAILS_ENV: test
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: root
+
     steps:
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libvips
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y $APT_PACKAGES libvips
 
       - name: Checkout code
         uses: actions/checkout@v6
@@ -83,39 +123,34 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
 
-      - name: Run tests
-        env:
-          RAILS_ENV: test
-        run: bin/rails db:test:prepare test
+      - name: Prepare the database
+        run: bin/rails db:create db:schema:load
 
-      - name: Check seeds
-        env:
-          RAILS_ENV: test
-        run: bin/rails db:seed:replant
+      - name: Check every migration runs on MySQL from scratch
+        run: |
+          bin/rails db:drop db:create db:migrate
+          git diff --exit-code db/schema.rb
 
-  system-test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libvips
+      - name: Run specs (unit, request and system; fails below 100% coverage)
+        run: bin/rspec
 
-      - name: Checkout code
-        uses: actions/checkout@v6
+      - name: Check seeds and audit the seeded data
+        run: |
+          bin/rails db:seed:replant
+          bin/rails data:audit
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+      - name: Keep the coverage report
+        uses: actions/upload-artifact@v4
+        if: always() && matrix.ruby == '4.0' && matrix.mysql == '8.4'
         with:
-          bundler-cache: true
+          name: coverage
+          path: coverage/
+          if-no-files-found: ignore
 
-      - name: Run system tests
-        env:
-          RAILS_ENV: test
-        run: bin/rails db:test:prepare test:system
-
-      - name: Keep screenshots from failed system tests
+      - name: Keep screenshots from failed system specs
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: screenshots
-          path: ${{ github.workspace }}/tmp/screenshots
+          name: screenshots-ruby-${{ matrix.ruby }}-mysql-${{ matrix.mysql }}
+          path: ${{ github.workspace }}/tmp/capybara
           if-no-files-found: ignore
