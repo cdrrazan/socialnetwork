@@ -154,3 +154,41 @@ jobs:
           name: screenshots-ruby-${{ matrix.ruby }}-mysql-${{ matrix.mysql }}
           path: ${{ github.workspace }}/tmp/capybara
           if-no-files-found: ignore
+
+  upgrade-rehearsal:
+    name: upgrade a 2017 database
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      MYSQL_ADMIN_ARGS: -h127.0.0.1 -uroot -proot
+
+    steps:
+      - name: Install packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y $APT_PACKAGES mysql-client
+
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Build a 2017-style database, migrate it and compare with db/schema.rb
+        run: script/rehearse_upgrade

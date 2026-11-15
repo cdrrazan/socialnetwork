@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+# Rehearses upgrading a 2017 DevStory database to the current schema.
+#
+# 1. Builds a throwaway database the way a 2017 install looked: only the 2017
+#    migrations, utf8 (utf8mb3) tables, Paperclip avatar columns.
+# 2. Loads 2017-style data, including an avatar file under public/system,
+#    votes, tags, comments, answers, follows and messages.
+# 3. Runs data:audit, then every newer migration.
+# 4. Checks the data survived (avatar moved to Active Storage, counter caches
+#    and tag lists back-filled, emoji storable) and that the resulting schema
+#    is identical to db/schema.rb.
+#
+# Uses its own database (socialnetwork_upgrade_rehearsal by default) and
+# never touches your development data. Needs the `mysql` command-line client
+# with rights to create that database; pass connection options in
+# MYSQL_ADMIN_ARGS, e.g. MYSQL_ADMIN_ARGS="-h127.0.0.1 -uroot -proot".
+#
+# Usage: script/rehearse_upgrade
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+export RAILS_ENV=development
+export DB_DEVELOPMENT_NAME="${DB_DEVELOPMENT_NAME:-socialnetwork_upgrade_rehearsal}"
+DB="$DB_DEVELOPMENT_NAME"
+WORK="$(mktemp -d)"
+export SCHEMA="$WORK/schema.rb"
+AVATAR_DIR="public/system/users/user_images/000/000/001/original"
+LAST_2017_MIGRATION=20170825133021
+read -r -a MYSQL_ARGS <<< "${MYSQL_ADMIN_ARGS:--uroot}"
+
+sql() { mysql "${MYSQL_ARGS[@]}" "$@"; }
+step() { printf '\n== %s\n' "$*"; }
+fail() { printf '\nFAILED: %s\n' "$*" >&2; exit 1; }
+cleanup() {
+  rm -rf "$WORK" public/system
+  sql -e "DROP DATABASE IF EXISTS \`$DB\`" || true
+}
+trap cleanup EXIT
+
+[ -e public/system ] && fail "public/system already exists; move it out of the way first"
+
+step "Building a 2017-era database ($DB)"
+sql -e "DROP DATABASE IF EXISTS \`$DB\`; CREATE DATABASE \`$DB\` CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci"
+bin/rails db:migrate VERSION=$LAST_2017_MIGRATION > /dev/null
+# Rails 8 creates tables with the connection's utf8mb4 charset, but the 2017
+# tables were DEFAULT CHARSET=utf8, with tags.name utf8_bin.
+for table in $(sql -N "$DB" -e "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name NOT IN ('schema_migrations', 'ar_internal_metadata')"); do
+  sql "$DB" -e "ALTER TABLE \`$table\` CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci"
+done
+sql "$DB" -e "ALTER TABLE tags MODIFY name varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin"
+
+step "Loading 2017-style data"
+sql "$DB" <<'SQL'
+INSERT INTO users (id, email, encrypted_password, username, permalink, admin, sign_in_count, created_at, updated_at,
+                   user_image_file_name, user_image_content_type, user_image_file_size, user_image_updated_at) VALUES
+  (1, 'alice@example.com', 'x', 'alice', 'alice', 1, 0, NOW(), NOW(), 'me.png', 'image/png', 100, NOW()),
+  (2, 'bob@example.com',   'x', 'bob',   'bob',   0, 0, NOW(), NOW(), NULL, NULL, NULL, NULL),
+  (3, 'old@example.com',   'x', NULL,    NULL,    0, 0, NOW(), NOW(), NULL, NULL, NULL, NULL);
+INSERT INTO posts (id, user_id, title, body, state, created_at, updated_at) VALUES
+  (1, 1, 'Rails 5 is out', '<p>Rails 5 and Ruby</p>', NULL, NOW(), NOW()),
+  (2, 2, 'Draft', '<p>Coming soon</p>', 'unpublished', NOW(), NOW());
+INSERT INTO comments (body, user_id, post_id, created_at, updated_at) VALUES
+  ('Nice', 2, 1, NOW(), NOW()), ('Agreed', 3, 1, NOW(), NOW());
+INSERT INTO questions (id, title, body, user_id, created_at, updated_at) VALUES (1, 'How?', 'Like this?', 2, NOW(), NOW());
+INSERT INTO answers (body, user_id, question_id, post_id, created_at, updated_at) VALUES ('Yes', 1, 1, NULL, NOW(), NOW());
+INSERT INTO votes (votable_type, votable_id, voter_type, voter_id, vote_flag, created_at, updated_at) VALUES
+  ('Post', 1, 'User', 1, 1, NOW(), NOW()), ('Post', 1, 'User', 2, 1, NOW(), NOW()), ('Post', 1, 'User', 3, 0, NOW(), NOW());
+INSERT INTO tags (id, name, taggings_count) VALUES (1, 'ruby', 1), (2, 'rails', 1);
+INSERT INTO taggings (tag_id, taggable_type, taggable_id, context, created_at) VALUES
+  (1, 'Post', 1, 'tags', NOW()), (2, 'Post', 1, 'tags', NOW());
+INSERT INTO friendships (user_id, friend_id, created_at, updated_at) VALUES (1, 2, NOW(), NOW());
+INSERT INTO conversations (id, author_id, receiver_id, created_at, updated_at) VALUES (1, 1, 2, NOW(), NOW());
+INSERT INTO personal_messages (body, conversation_id, user_id, created_at, updated_at) VALUES ('Hi Bob', 1, 1, NOW(), NOW());
+SQL
+mkdir -p "$AVATAR_DIR"
+cp spec/fixtures/files/avatar.png "$AVATAR_DIR/me.png"
+
+step "Auditing before migrating (one user without a username is expected)"
+bin/rails data:audit || true
+
+step "Running the newer migrations"
+bin/rails db:migrate | grep -E "^== [0-9]+ .*: migrated" || fail "migrations failed"
+
+step "Checking the data"
+bin/rails runner '
+  def check(label, actual, expected)
+    status = actual == expected ? "ok" : "MISMATCH (expected #{expected.inspect})"
+    puts format("  %-38s %-22s %s", label, actual.inspect, status)
+    @failed = true unless actual == expected
+  end
+
+  post = Post.find(1)
+  check "avatar moved to Active Storage", User.find(1).avatar.filename.to_s, "me.png"
+  check "posts.comments_count", post.comments_count, 2
+  check "posts.cached_votes_up/down", [ post.cached_votes_up, post.cached_votes_down ], [ 2, 1 ]
+  check "posts.cached_votes_score", post.cached_votes_score, 1
+  check "posts.cached_tag_list", post.cached_tag_list, "ruby, rails"
+  check "questions.answers_count", Question.find(1).answers_count, 1
+  check "draft still a draft", Post.find(2).published?, false
+  check "users.id type", User.columns_hash["id"].sql_type, "bigint"
+  check "tags.name collation", ActsAsTaggableOn::Tag.columns_hash["name"].collation, "utf8mb4_bin"
+  rocket = "Rails 5 is out \u{1F680}"
+  post.update!(title: rocket)
+  check "emoji round-trip", post.reload.title, rocket
+  abort "\nSome checks failed." if @failed
+'
+remaining=$(sql -N "$DB" -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE' AND table_collation NOT LIKE 'utf8mb4%'")
+[ "$remaining" = "0" ] || fail "$remaining table(s) are not utf8mb4"
+echo "  all tables are utf8mb4"
+
+step "Comparing the upgraded schema with db/schema.rb"
+if diff <(grep -v "ActiveRecord::Schema\[" db/schema.rb) <(grep -v "ActiveRecord::Schema\[" "$SCHEMA"); then
+  echo "  identical"
+else
+  fail "the upgraded schema differs from db/schema.rb (diff above)"
+fi
+
+step "Upgrade rehearsal passed"

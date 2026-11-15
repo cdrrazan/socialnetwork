@@ -16,6 +16,7 @@ CI.run do
   step "Tests: RSpec", "bin/rspec"
   step "Tests: Seeds", "env RAILS_ENV=test bin/rails db:seed:replant"
   step "Data: Audit seeded data", "env RAILS_ENV=test bin/rails data:audit"
+  step "Data: Rehearse upgrading a 2017 database", "script/rehearse_upgrade"
 
   # Optional: set a green GitHub commit status to unblock PR merge.
   # Requires the `gh` CLI and `gh extension install basecamp/gh-signoff`.
