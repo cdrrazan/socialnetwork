@@ -1,8 +1,8 @@
 class Answer < ApplicationRecord
-  belongs_to :question
+  belongs_to :question, counter_cache: true
   belongs_to :user
 
-  validates :body, presence: true
+  validates :body, presence: true, length: { maximum: 20_000 }
 
   scope :chronological, -> { order(created_at: :asc) }
 

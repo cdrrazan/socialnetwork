@@ -5,6 +5,11 @@
       by <%= link_to post.user.display_name, post.user %> · <%= time_ago_in_words(post.created_at) %> ago
     </p>
     <p class="card-text"><%= truncate(strip_tags(post.body), length: 200) %></p>
-    <%= render "posts/tags", post: post %>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <%= render "posts/tags", post: post %>
+      <small class="text-body-secondary ms-auto">
+        👍 <%= post.cached_votes_up %> · 💬 <%= pluralize(post.comments_count, "comment") %>
+      </small>
+    </div>
   </div>
 </article>

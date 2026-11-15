@@ -4,7 +4,8 @@ class PostsController < ApplicationController
 
   def index
     authorize Post
-    @posts = policy_scope(Post).includes(:user, :tags).newest_first
+    @posts = policy_scope(Post).includes(:user, :tags)
+    @posts = params[:sort] == "top" ? @posts.top_rated : @posts.newest_first
     @posts = @posts.tagged_with(params[:tag]) if params[:tag].present?
   end
 
