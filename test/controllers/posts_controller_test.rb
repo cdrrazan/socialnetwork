@@ -33,6 +33,16 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
     assert_select "aside a", text: posts(:ruby).title
   end
 
+  test "drafts are hidden from other members" do
+    sign_in users(:bob)
+    get post_path(posts(:draft))
+    assert_redirected_to root_path
+
+    sign_in users(:alice)
+    get post_path(posts(:draft))
+    assert_response :success
+  end
+
   test "show sanitizes the body" do
     @post.update!(body: %(<p>Hi</p><script>alert("xss")</script>))
     sign_in users(:bob)
